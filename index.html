@@ -918,6 +918,203 @@
   .cl-detail { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-top: 4px; white-space: pre-wrap; }
   .cl-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: 2px; }
 
+  /* ── CHATBOT ── */
+  .chat-fab {
+    position: fixed;
+    bottom: 84px;
+    right: 20px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background 0.15s;
+  }
+  .chat-fab:hover { background: var(--primary-light); transform: scale(1.08); }
+  .chat-fab .chat-badge {
+    position: absolute;
+    top: -2px; right: -2px;
+    background: var(--danger);
+    color: #fff;
+    border-radius: 50%;
+    width: 18px; height: 18px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: none;
+  }
+
+  .chat-panel {
+    position: fixed;
+    bottom: 148px;
+    right: 20px;
+    width: 360px;
+    max-height: 520px;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: bottom right;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .chat-panel.open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+  .chat-panel-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chat-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .chat-panel-title { font-weight: 700; font-size: 15px; }
+  .chat-panel-sub { font-size: 11px; opacity: 0.75; }
+  .chat-close-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.8;
+    padding: 4px;
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .chat-msg {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-bubble {
+    max-width: 78%;
+    padding: 10px 13px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .chat-msg.bot .chat-bubble {
+    background: var(--surface2);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+  .chat-msg.user .chat-bubble {
+    background: var(--primary);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .chat-bubble b { font-weight: 700; }
+  .chat-time {
+    font-size: 10px;
+    color: var(--text-3);
+    margin-bottom: 2px;
+    flex-shrink: 0;
+  }
+
+  .chat-suggestions {
+    padding: 6px 14px 2px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .chat-chip {
+    background: var(--primary-pale);
+    color: var(--primary);
+    border: 1px solid var(--primary-light);
+    border-radius: 20px;
+    padding: 4px 11px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: background 0.1s;
+    white-space: nowrap;
+  }
+  .chat-chip:hover { background: var(--primary); color: #fff; }
+
+  .chat-input-row {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .chat-input {
+    flex: 1;
+    border: 2px solid var(--border);
+    border-radius: 22px;
+    padding: 9px 14px;
+    font-family: var(--sans);
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    transition: border-color 0.15s;
+  }
+  .chat-input:focus { border-color: var(--primary-light); }
+  .chat-send-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .chat-send-btn:hover { background: var(--primary-light); }
+
+  @media (max-width: 768px) {
+    .chat-fab { bottom: 70px; right: 14px; width: 50px; height: 50px; font-size: 22px; }
+    .chat-panel {
+      bottom: 0; right: 0; left: 0;
+      width: 100%;
+      max-height: 75vh;
+      border-radius: 18px 18px 0 0;
+      transform-origin: bottom center;
+    }
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -1501,6 +1698,34 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- ═════════════ CHATBOT ═════════════ -->
+<button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="ถามบอท">
+  🤖
+  <span class="chat-badge" id="chat-badge">1</span>
+</button>
+
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-panel-header">
+    <div class="chat-avatar">🤖</div>
+    <div>
+      <div class="chat-panel-title">บอทร้านของชำ</div>
+      <div class="chat-panel-sub">ถามได้เลยครับ — ข้อมูลจริงจากร้าน</div>
+    </div>
+    <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-suggestions" id="chat-suggestions">
+    <button class="chat-chip" onclick="sendChatChip(this)">สต็อกใกล้หมด?</button>
+    <button class="chat-chip" onclick="sendChatChip(this)">ยอดขายวันนี้</button>
+    <button class="chat-chip" onclick="sendChatChip(this)">กำไรเดือนนี้</button>
+    <button class="chat-chip" onclick="sendChatChip(this)">สินค้าขายดีสุด</button>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chat-input" type="text" placeholder="พิมพ์คำถาม..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send-btn" onclick="sendChat()">➤</button>
+  </div>
+</div>
 
 <!-- Firebase CDN (compat version — ใช้ได้กับ file://) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -2555,6 +2780,14 @@ function dateStrToTs(dateStr, offsetMinutes = 0) {
 
 const DEFAULT_CHANGELOGS = [
   {
+    id: 10,
+    title: 'เพิ่มแชทบอทถามข้อมูลร้าน',
+    type: 'feature',
+    date: '2026-06-17',
+    detail: 'เพิ่มบอทลอยอยู่มุมขวาล่าง กดปุ่ม 🤖 เพื่อเปิด\nถามได้เลยว่า:\n• ยอดขาย/กำไร วันนี้ เดือนนี้ ทั้งหมด\n• สินค้าใกล้หมด/หมดสต็อก\n• สต็อกสินค้าชิ้นนั้นๆ\n• สินค้าขายดีสุด / กำไรดีสุด\n• ราคาสินค้า\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด\nบอทดึงข้อมูลจริงจาก Firebase แบบ real-time',
+    get createdAt() { return dateStrToTs('2026-06-17', 9); },
+  },
+  {
     id: 9,
     title: 'รองรับการใช้งานบนมือถือ',
     type: 'feature',
@@ -2778,6 +3011,204 @@ async function deleteChangelog(key) {
     renderChangelog();
   }
   showToast('ลบแล้ว','error');
+}
+
+// ══════════════════════════════════════════
+//  CHATBOT
+// ══════════════════════════════════════════
+let chatOpen = false;
+let chatHistory = [];
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  document.getElementById('chat-fab').innerHTML = chatOpen ? '✕' : '🤖<span class="chat-badge" id="chat-badge" style="display:none"></span>';
+  if (chatOpen && chatHistory.length === 0) {
+    botSay('สวัสดีครับ! 👋 ผมคือบอทของร้าน ถามได้เลยนะครับ เช่น\n• ยอดขายวันนี้เท่าไหร่?\n• สินค้าอะไรใกล้หมด?\n• กำไรเดือนนี้เท่าไหร่?');
+  }
+  if (chatOpen) setTimeout(() => document.getElementById('chat-input').focus(), 300);
+}
+
+function botSay(text) {
+  const now = new Date().toLocaleTimeString('th-TH', { timeZone:'Asia/Bangkok', hour:'2-digit', minute:'2-digit' });
+  chatHistory.push({ role:'bot', text, time: now });
+  renderChatMessages();
+}
+
+function userSay(text) {
+  const now = new Date().toLocaleTimeString('th-TH', { timeZone:'Asia/Bangkok', hour:'2-digit', minute:'2-digit' });
+  chatHistory.push({ role:'user', text, time: now });
+  renderChatMessages();
+}
+
+function renderChatMessages() {
+  const wrap = document.getElementById('chat-messages');
+  wrap.innerHTML = chatHistory.map(m => `
+    <div class="chat-msg ${m.role}">
+      <span class="chat-time">${m.time}</span>
+      <div class="chat-bubble">${m.text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')}</div>
+    </div>`).join('');
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function sendChatChip(el) {
+  document.getElementById('chat-input').value = el.textContent;
+  sendChat();
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  userSay(text);
+  setTimeout(() => botSay(processChat(text)), 350);
+}
+
+function todaySales() {
+  const t = new Date();
+  return sales.filter(s => {
+    const d = new Date(s.time);
+    return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
+  });
+}
+
+function thisMonthSales() {
+  const t = new Date();
+  return sales.filter(s => {
+    const d = new Date(s.time);
+    return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth();
+  });
+}
+
+function processChat(input) {
+  const q = input.toLowerCase();
+
+  // ── ยอดขายวันนี้ ──
+  if ((q.includes('ยอด') || q.includes('ขาย') || q.includes('รายได้')) && (q.includes('วันนี้') || q.includes('today'))) {
+    const s = todaySales();
+    const total = s.reduce((a,x)=>a+x.total,0);
+    const profit = s.reduce((a,x)=>a+x.profit,0);
+    return `📅 **วันนี้** มียอดขาย **฿${total.toFixed(2)}** จาก **${s.length} บิล**\nกำไร **฿${profit.toFixed(2)}** ครับ`;
+  }
+
+  // ── ยอดขายเดือนนี้ ──
+  if ((q.includes('ยอด') || q.includes('ขาย') || q.includes('รายได้')) && (q.includes('เดือน') || q.includes('month'))) {
+    const s = thisMonthSales();
+    const total = s.reduce((a,x)=>a+x.total,0);
+    const profit = s.reduce((a,x)=>a+x.profit,0);
+    return `📆 **เดือนนี้** มียอดขาย **฿${total.toFixed(2)}** จาก **${s.length} บิล**\nกำไร **฿${profit.toFixed(2)}** ครับ`;
+  }
+
+  // ── ยอดขายทั้งหมด ──
+  if ((q.includes('ยอด') || q.includes('ขาย')) && (q.includes('ทั้งหมด') || q.includes('รวม') || q.includes('total'))) {
+    const total = sales.reduce((a,x)=>a+x.total,0);
+    const profit = sales.reduce((a,x)=>a+x.profit,0);
+    return `📊 **ยอดขายรวมทั้งหมด** **฿${total.toFixed(2)}** จาก **${sales.length} บิล**\nกำไรรวม **฿${profit.toFixed(2)}** ครับ`;
+  }
+
+  // ── กำไรวันนี้ ──
+  if (q.includes('กำไร') && q.includes('วันนี้')) {
+    const s = todaySales();
+    const profit = s.reduce((a,x)=>a+x.profit,0);
+    return `💰 **กำไรวันนี้** **฿${profit.toFixed(2)}** จาก ${s.length} บิลครับ`;
+  }
+
+  // ── กำไรเดือนนี้ ──
+  if (q.includes('กำไร') && q.includes('เดือน')) {
+    const s = thisMonthSales();
+    const profit = s.reduce((a,x)=>a+x.profit,0);
+    return `💰 **กำไรเดือนนี้** **฿${profit.toFixed(2)}** จาก ${s.length} บิลครับ`;
+  }
+
+  // ── สินค้าใกล้หมด / หมด ──
+  if (q.includes('ใกล้หมด') || q.includes('เกือบหมด')) {
+    const low = products.filter(p=>p.stock>0&&p.stock<=p.alert).sort((a,b)=>a.stock-b.stock);
+    if (!low.length) return '✅ ไม่มีสินค้าใกล้หมดครับ สต็อกปกติทุกรายการ';
+    return `⚠️ **สินค้าใกล้หมด ${low.length} รายการ**\n` + low.map(p=>`• ${p.emoji||'📦'} ${p.name} เหลือ **${p.stock} ${p.unit||'ชิ้น'}** (แจ้งที่ ${p.alert})`).join('\n');
+  }
+
+  if (q.includes('หมดสต็อก') || q.includes('หมด') || (q.includes('สต็อก')&&q.includes('หมด'))) {
+    const empty = products.filter(p=>p.stock===0);
+    if (!empty.length) return '✅ ไม่มีสินค้าหมดสต็อกเลยครับ';
+    return `🚫 **สินค้าหมดสต็อก ${empty.length} รายการ**\n` + empty.map(p=>`• ${p.emoji||'📦'} ${p.name}`).join('\n');
+  }
+
+  // ── สต็อกสินค้าชิ้นนั้น ──
+  if (q.includes('สต็อก') || q.includes('เหลือ') || q.includes('จำนวน')) {
+    const found = products.filter(p=>q.includes(p.name.toLowerCase()));
+    if (found.length) {
+      return found.map(p=>{
+        const status = p.stock===0?'🚫 หมดสต็อก':p.stock<=p.alert?`⚠️ ใกล้หมด`:'✅ ปกติ';
+        return `${p.emoji||'📦'} **${p.name}**\nสต็อก **${p.stock} ${p.unit||'ชิ้น'}** ${status}`;
+      }).join('\n\n');
+    }
+  }
+
+  // ── ราคาสินค้า ──
+  if (q.includes('ราคา')) {
+    const found = products.filter(p=>q.includes(p.name.toLowerCase()));
+    if (found.length) {
+      return found.map(p=>`${p.emoji||'📦'} **${p.name}**\nราคา **฿${p.price.toFixed(2)}** | ต้นทุน ฿${p.cost.toFixed(2)} | กำไร ${p.price>0?(((p.price-p.cost)/p.price)*100).toFixed(0):0}%`).join('\n\n');
+    }
+    // ถ้าไม่ระบุสินค้า
+    const sorted = [...products].sort((a,b)=>a.price-b.price);
+    return `💰 **ราคาสินค้าทั้งหมด** (${products.length} รายการ)\n` + sorted.slice(0,8).map(p=>`• ${p.emoji||'📦'} ${p.name} — ฿${p.price.toFixed(2)}`).join('\n') + (sorted.length>8?`\n...และอีก ${sorted.length-8} รายการ`:'');
+  }
+
+  // ── สินค้าขายดีสุด ──
+  if (q.includes('ขายดี') || q.includes('ขายดีสุด') || q.includes('popular') || q.includes('นิยม')) {
+    const countMap = {};
+    sales.forEach(s=>s.items.forEach(i=>{ countMap[i.name]=(countMap[i.name]||0)+i.qty; }));
+    const sorted = Object.entries(countMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    if (!sorted.length) return 'ยังไม่มีข้อมูลยอดขายครับ';
+    return `🏆 **สินค้าขายดีสุด**\n` + sorted.map(([name,qty],i)=>`${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${name} — ${qty} ชิ้น`).join('\n');
+  }
+
+  // ── สินค้ากำไรดีสุด ──
+  if (q.includes('กำไรดี') || q.includes('กำไรสูง') || q.includes('กำไรมาก')) {
+    const sorted = [...products].filter(p=>p.price>0).sort((a,b)=>((b.price-b.cost)/b.price)-((a.price-a.cost)/a.price)).slice(0,5);
+    return `💎 **สินค้ากำไร % สูงสุด**\n` + sorted.map((p,i)=>`${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${p.emoji||'📦'} ${p.name} — ${(((p.price-p.cost)/p.price)*100).toFixed(0)}% (฿${(p.price-p.cost).toFixed(2)}/ชิ้น)`).join('\n');
+  }
+
+  // ── จำนวนสินค้า ──
+  if (q.includes('สินค้าทั้งหมด') || q.includes('มีสินค้า') || q.includes('จำนวนสินค้า')) {
+    const low = products.filter(p=>p.stock>0&&p.stock<=p.alert).length;
+    const empty = products.filter(p=>p.stock===0).length;
+    return `📦 **สินค้าทั้งหมด ${products.length} รายการ**\n✅ ปกติ ${products.length-low-empty} | ⚠️ ใกล้หมด ${low} | 🚫 หมด ${empty} ครับ`;
+  }
+
+  // ── บิลล่าสุด ──
+  if (q.includes('บิลล่าสุด') || q.includes('ล่าสุด') || q.includes('บิลสุดท้าย')) {
+    if (!sales.length) return 'ยังไม่มีบิลครับ';
+    const s = [...sales].sort((a,b)=>new Date(b.time)-new Date(a.time))[0];
+    const d = new Date(s.time);
+    const t = d.toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `🧾 **บิลล่าสุด** (${t})\n${s.items.map(i=>`• ${i.name} ×${i.qty}`).join('\n')}\n**รวม ฿${s.total.toFixed(2)}** | ${s.method==='cash'?'💵 เงินสด':'📱 QR/โอน'}`;
+  }
+
+  // ── หมวดหมู่ ──
+  if (q.includes('หมวด') || q.includes('ประเภท') || q.includes('category')) {
+    return `🏷️ **หมวดหมู่ทั้งหมด ${categories.length} หมวด**\n` + categories.map(c=>{
+      const count = products.filter(p=>p.cat===c.name).length;
+      return `• ${c.emoji} ${c.name} (${count} รายการ)`;
+    }).join('\n');
+  }
+
+  // ── วิธีใช้ / ช่วยเหลือ ──
+  if (q.includes('วิธี') || q.includes('ช่วย') || q.includes('help') || q.includes('ทำยังไง')) {
+    return `📖 **คำถามที่ถามได้**\n• ยอดขายวันนี้/เดือนนี้/ทั้งหมด\n• กำไรวันนี้/เดือนนี้\n• สต็อก [ชื่อสินค้า]\n• สินค้าใกล้หมด/หมดสต็อก\n• สินค้าขายดีสุด\n• สินค้ากำไรดีสุด\n• ราคา [ชื่อสินค้า]\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด`;
+  }
+
+  // ── ค้นหาสินค้า ──
+  const found = products.filter(p=>q.includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(q.replace(/[?？]/g,'').trim()));
+  if (found.length) {
+    return found.map(p=>`${p.emoji||'📦'} **${p.name}**\nราคา ฿${p.price.toFixed(2)} | สต็อก ${p.stock} ${p.unit||'ชิ้น'} | ${p.cat}`).join('\n\n');
+  }
+
+  // ── fallback ──
+  const tips = ['สต็อกใกล้หมด?','ยอดขายวันนี้','กำไรเดือนนี้','สินค้าขายดีสุด','บิลล่าสุด'];
+  return `ขอโทษครับ ไม่แน่ใจว่าถามเรื่องอะไร 😅\nลองถามแบบนี้ได้เลยครับ:\n` + tips.map(t=>`• ${t}`).join('\n');
 }
 
 // ══════════════════════════════════════════
