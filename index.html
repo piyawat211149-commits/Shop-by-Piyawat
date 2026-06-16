@@ -1105,11 +1105,18 @@
   .chat-send-btn:hover { background: var(--primary-light); }
 
   @media (max-width: 768px) {
-    .chat-fab { bottom: 70px; right: 14px; width: 50px; height: 50px; font-size: 22px; }
+    .chat-fab {
+      bottom: 70px;
+      right: 14px;
+      width: 48px;
+      height: 48px;
+      font-size: 21px;
+    }
     .chat-panel {
-      bottom: 0; right: 0; left: 0;
+      bottom: 56px;
+      right: 0; left: 0;
       width: 100%;
-      max-height: 75vh;
+      max-height: calc(100vh - 120px);
       border-radius: 18px 18px 0 0;
       transform-origin: bottom center;
     }
@@ -3082,133 +3089,224 @@ function thisMonthSales() {
 }
 
 function processChat(input) {
-  const q = input.toLowerCase();
+  const q = input.toLowerCase().trim();
 
-  // ── ยอดขายวันนี้ ──
-  if ((q.includes('ยอด') || q.includes('ขาย') || q.includes('รายได้')) && (q.includes('วันนี้') || q.includes('today'))) {
+  // ── ทักทาย ──
+  if (/^(สวัสดี|หวัดดี|ดีจ้า|ดีครับ|hello|hi|hey|yo|ว่าไง|อยู่ไหม)/.test(q)) {
+    const now = new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit'});
+    const todayS = todaySales();
+    const todayTotal = todayS.reduce((a,x)=>a+x.total,0);
+    return `สวัสดีครับ! 😊 ตอนนี้ ${now} น.\nวันนี้มียอดขายแล้ว **฿${todayTotal.toFixed(0)}** จาก **${todayS.length} บิล**\nมีอะไรให้ช่วยไหมครับ?`;
+  }
+
+  // ── ขอบคุณ ──
+  if (/ขอบคุณ|ขอบใจ|thanks|thank you|thx/.test(q)) {
+    return 'ยินดีครับ! 😊 มีอะไรถามได้ตลอดเลยนะครับ';
+  }
+
+  // ── บอทเป็นใคร ──
+  if (/เป็นใคร|คือใคร|ทำอะไรได้|ความสามารถ|คุณคือ/.test(q)) {
+    return `ผมคือ **บอทร้านของชำ** 🤖\nช่วยดูข้อมูลร้านได้แบบ real-time ครับ เช่น\n• 📊 ยอดขาย & กำไร (วันนี้/เดือนนี้/ทั้งหมด)\n• 📦 สต็อกสินค้า & แจ้งเตือนใกล้หมด\n• 🏆 สินค้าขายดี & กำไรสูงสุด\n• 🧾 ประวัติบิล & สรุปรายวัน\n• 💰 ราคา & ต้นทุนสินค้า\n• 🏷️ หมวดหมู่สินค้า`;
+  }
+
+  // ── วันนี้วันอะไร / เวลา ──
+  if (/วันนี้วัน|วันอะไร|เวลา|กี่โมง/.test(q)) {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('th-TH',{timeZone:'Asia/Bangkok',weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const timeStr = now.toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit'});
+    return `📅 วันนี้ **${dateStr}**\n🕐 เวลา **${timeStr} น.** ครับ`;
+  }
+
+  // ── สรุปวันนี้ ──
+  if (q.includes('สรุป') && q.includes('วันนี้') || q==='วันนี้เป็นยังไงบ้าง' || q==='วันนี้เป็นไง') {
     const s = todaySales();
     const total = s.reduce((a,x)=>a+x.total,0);
     const profit = s.reduce((a,x)=>a+x.profit,0);
-    return `📅 **วันนี้** มียอดขาย **฿${total.toFixed(2)}** จาก **${s.length} บิล**\nกำไร **฿${profit.toFixed(2)}** ครับ`;
+    const low = products.filter(p=>p.stock>0&&p.stock<=p.alert).length;
+    const empty = products.filter(p=>p.stock===0).length;
+    const cash = s.filter(x=>x.method==='cash').reduce((a,x)=>a+x.total,0);
+    const qr = s.filter(x=>x.method==='qr').reduce((a,x)=>a+x.total,0);
+    return `📋 **สรุปวันนี้**\n💵 ยอดขาย **฿${total.toFixed(0)}** (${s.length} บิล)\n💰 กำไร **฿${profit.toFixed(0)}**\n🏧 เงินสด ฿${cash.toFixed(0)} | QR ฿${qr.toFixed(0)}\n${low?`⚠️ สินค้าใกล้หมด ${low} รายการ`:'✅ สต็อกปกติทุกรายการ'}${empty?`\n🚫 หมดสต็อก ${empty} รายการ`:''}`;
+  }
+
+  // ── ยอดขายวันนี้ ──
+  if ((q.includes('ยอด')||q.includes('ขาย')||q.includes('รายได้')) && q.includes('วันนี้')) {
+    const s = todaySales();
+    const total = s.reduce((a,x)=>a+x.total,0);
+    const profit = s.reduce((a,x)=>a+x.profit,0);
+    const cash = s.filter(x=>x.method==='cash').reduce((a,x)=>a+x.total,0);
+    const qr = s.filter(x=>x.method==='qr').reduce((a,x)=>a+x.total,0);
+    if (!s.length) return '📅 วันนี้ยังไม่มียอดขายเลยครับ';
+    return `📅 **ยอดขายวันนี้ ฿${total.toFixed(2)}**\nจาก **${s.length} บิล** | กำไร **฿${profit.toFixed(2)}**\n💵 เงินสด ฿${cash.toFixed(0)} | 📱 QR ฿${qr.toFixed(0)}`;
   }
 
   // ── ยอดขายเดือนนี้ ──
-  if ((q.includes('ยอด') || q.includes('ขาย') || q.includes('รายได้')) && (q.includes('เดือน') || q.includes('month'))) {
+  if ((q.includes('ยอด')||q.includes('ขาย')||q.includes('รายได้')) && q.includes('เดือน')) {
     const s = thisMonthSales();
     const total = s.reduce((a,x)=>a+x.total,0);
     const profit = s.reduce((a,x)=>a+x.profit,0);
-    return `📆 **เดือนนี้** มียอดขาย **฿${total.toFixed(2)}** จาก **${s.length} บิล**\nกำไร **฿${profit.toFixed(2)}** ครับ`;
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    const daysPassed = now.getDate();
+    const avgPerDay = daysPassed > 0 ? total/daysPassed : 0;
+    const projected = avgPerDay * daysInMonth;
+    return `📆 **ยอดขายเดือนนี้ ฿${total.toFixed(0)}**\nจาก **${s.length} บิล** | กำไร **฿${profit.toFixed(0)}**\n📈 เฉลี่ย ฿${avgPerDay.toFixed(0)}/วัน\n🔮 คาดการณ์สิ้นเดือน ~฿${projected.toFixed(0)}`;
   }
 
   // ── ยอดขายทั้งหมด ──
-  if ((q.includes('ยอด') || q.includes('ขาย')) && (q.includes('ทั้งหมด') || q.includes('รวม') || q.includes('total'))) {
+  if ((q.includes('ยอด')||q.includes('ขาย')) && (q.includes('ทั้งหมด')||q.includes('รวม')||q.includes('total'))) {
     const total = sales.reduce((a,x)=>a+x.total,0);
     const profit = sales.reduce((a,x)=>a+x.profit,0);
-    return `📊 **ยอดขายรวมทั้งหมด** **฿${total.toFixed(2)}** จาก **${sales.length} บิล**\nกำไรรวม **฿${profit.toFixed(2)}** ครับ`;
+    const margin = total>0?(profit/total*100).toFixed(1):0;
+    return `📊 **ยอดขายรวมทั้งหมด**\n💵 **฿${total.toFixed(0)}** จาก **${sales.length} บิล**\n💰 กำไรรวม **฿${profit.toFixed(0)}** (margin ${margin}%)`;
   }
 
   // ── กำไรวันนี้ ──
   if (q.includes('กำไร') && q.includes('วันนี้')) {
     const s = todaySales();
     const profit = s.reduce((a,x)=>a+x.profit,0);
-    return `💰 **กำไรวันนี้** **฿${profit.toFixed(2)}** จาก ${s.length} บิลครับ`;
+    const total = s.reduce((a,x)=>a+x.total,0);
+    const margin = total>0?(profit/total*100).toFixed(1):0;
+    return `💰 **กำไรวันนี้ ฿${profit.toFixed(2)}**\nจาก ${s.length} บิล | margin ${margin}% ครับ`;
   }
 
   // ── กำไรเดือนนี้ ──
   if (q.includes('กำไร') && q.includes('เดือน')) {
     const s = thisMonthSales();
     const profit = s.reduce((a,x)=>a+x.profit,0);
-    return `💰 **กำไรเดือนนี้** **฿${profit.toFixed(2)}** จาก ${s.length} บิลครับ`;
+    const total = s.reduce((a,x)=>a+x.total,0);
+    const margin = total>0?(profit/total*100).toFixed(1):0;
+    return `💰 **กำไรเดือนนี้ ฿${profit.toFixed(2)}**\nจาก ${s.length} บิล | margin ${margin}% ครับ`;
   }
 
-  // ── สินค้าใกล้หมด / หมด ──
-  if (q.includes('ใกล้หมด') || q.includes('เกือบหมด')) {
+  // ── กำไรทั้งหมด ──
+  if (q.includes('กำไร') && (q.includes('ทั้งหมด')||q.includes('รวม'))) {
+    const profit = sales.reduce((a,x)=>a+x.profit,0);
+    const total = sales.reduce((a,x)=>a+x.total,0);
+    return `💰 **กำไรรวมทั้งหมด ฿${profit.toFixed(2)}**\ncost margin ${total>0?(profit/total*100).toFixed(1):0}% จาก ${sales.length} บิลครับ`;
+  }
+
+  // ── ยอดเงินสด / QR ──
+  if (q.includes('เงินสด') || q.includes('qr') || q.includes('โอน')) {
+    const s = q.includes('วันนี้') ? todaySales() : thisMonthSales();
+    const label = q.includes('วันนี้') ? 'วันนี้' : 'เดือนนี้';
+    const cash = s.filter(x=>x.method==='cash').reduce((a,x)=>a+x.total,0);
+    const qr = s.filter(x=>x.method==='qr').reduce((a,x)=>a+x.total,0);
+    const cashBills = s.filter(x=>x.method==='cash').length;
+    const qrBills = s.filter(x=>x.method==='qr').length;
+    return `🏧 **วิธีชำระ${label}**\n💵 เงินสด ฿${cash.toFixed(0)} (${cashBills} บิล)\n📱 QR/โอน ฿${qr.toFixed(0)} (${qrBills} บิล)`;
+  }
+
+  // ── สินค้าใกล้หมด ──
+  if (q.includes('ใกล้หมด')||q.includes('เกือบหมด')||q.includes('ต้องสั่ง')||q.includes('สั่งของ')) {
     const low = products.filter(p=>p.stock>0&&p.stock<=p.alert).sort((a,b)=>a.stock-b.stock);
-    if (!low.length) return '✅ ไม่มีสินค้าใกล้หมดครับ สต็อกปกติทุกรายการ';
-    return `⚠️ **สินค้าใกล้หมด ${low.length} รายการ**\n` + low.map(p=>`• ${p.emoji||'📦'} ${p.name} เหลือ **${p.stock} ${p.unit||'ชิ้น'}** (แจ้งที่ ${p.alert})`).join('\n');
+    if (!low.length) return '✅ ไม่มีสินค้าใกล้หมดเลยครับ สต็อกดีทุกรายการ';
+    return `⚠️ **ต้องสั่งเพิ่ม ${low.length} รายการ**\n`+low.map(p=>`• ${p.emoji||'📦'} ${p.name} เหลือ **${p.stock}** ${p.unit||'ชิ้น'}`).join('\n');
   }
 
-  if (q.includes('หมดสต็อก') || q.includes('หมด') || (q.includes('สต็อก')&&q.includes('หมด'))) {
+  // ── สินค้าหมด ──
+  if (q.includes('หมดสต็อก')||(q.includes('หมด')&&(q.includes('สต็อก')||q.includes('สินค้า')))) {
     const empty = products.filter(p=>p.stock===0);
     if (!empty.length) return '✅ ไม่มีสินค้าหมดสต็อกเลยครับ';
-    return `🚫 **สินค้าหมดสต็อก ${empty.length} รายการ**\n` + empty.map(p=>`• ${p.emoji||'📦'} ${p.name}`).join('\n');
+    return `🚫 **หมดสต็อก ${empty.length} รายการ**\n`+empty.map(p=>`• ${p.emoji||'📦'} ${p.name}`).join('\n')+'\nควรเติมสต็อกด่วนครับ!';
   }
 
-  // ── สต็อกสินค้าชิ้นนั้น ──
-  if (q.includes('สต็อก') || q.includes('เหลือ') || q.includes('จำนวน')) {
+  // ── สต็อกสินค้า (ค้นหาชื่อ) ──
+  if (q.includes('สต็อก')||q.includes('เหลือ')||q.includes('จำนวน')) {
     const found = products.filter(p=>q.includes(p.name.toLowerCase()));
-    if (found.length) {
-      return found.map(p=>{
-        const status = p.stock===0?'🚫 หมดสต็อก':p.stock<=p.alert?`⚠️ ใกล้หมด`:'✅ ปกติ';
-        return `${p.emoji||'📦'} **${p.name}**\nสต็อก **${p.stock} ${p.unit||'ชิ้น'}** ${status}`;
-      }).join('\n\n');
-    }
+    if (found.length) return found.map(p=>{
+      const st = p.stock===0?'🚫 หมดสต็อก':p.stock<=p.alert?'⚠️ ใกล้หมด':'✅ ปกติ';
+      return `${p.emoji||'📦'} **${p.name}** ${st}\nสต็อก **${p.stock} ${p.unit||'ชิ้น'}** (แจ้งที่ ${p.alert})`;
+    }).join('\n\n');
+    // ถ้าไม่ระบุสินค้า แสดงภาพรวม
+    const low=products.filter(p=>p.stock>0&&p.stock<=p.alert).length;
+    const empty=products.filter(p=>p.stock===0).length;
+    return `📦 **ภาพรวมสต็อก**\n✅ ปกติ ${products.length-low-empty} รายการ\n⚠️ ใกล้หมด ${low} รายการ\n🚫 หมด ${empty} รายการ`;
   }
 
   // ── ราคาสินค้า ──
-  if (q.includes('ราคา')) {
+  if (q.includes('ราคา')||q.includes('ขายเท่า')||q.includes('กี่บาท')) {
     const found = products.filter(p=>q.includes(p.name.toLowerCase()));
-    if (found.length) {
-      return found.map(p=>`${p.emoji||'📦'} **${p.name}**\nราคา **฿${p.price.toFixed(2)}** | ต้นทุน ฿${p.cost.toFixed(2)} | กำไร ${p.price>0?(((p.price-p.cost)/p.price)*100).toFixed(0):0}%`).join('\n\n');
-    }
-    // ถ้าไม่ระบุสินค้า
-    const sorted = [...products].sort((a,b)=>a.price-b.price);
-    return `💰 **ราคาสินค้าทั้งหมด** (${products.length} รายการ)\n` + sorted.slice(0,8).map(p=>`• ${p.emoji||'📦'} ${p.name} — ฿${p.price.toFixed(2)}`).join('\n') + (sorted.length>8?`\n...และอีก ${sorted.length-8} รายการ`:'');
+    if (found.length) return found.map(p=>`${p.emoji||'📦'} **${p.name}**\nราคา **฿${p.price.toFixed(2)}** | ต้นทุน ฿${p.cost.toFixed(2)} | กำไร ${p.price>0?(((p.price-p.cost)/p.price)*100).toFixed(0):0}%/ชิ้น`).join('\n\n');
+    const sorted=[...products].sort((a,b)=>a.price-b.price);
+    return `💰 **ราคาสินค้า (ต่ำ→สูง)**\n`+sorted.slice(0,8).map(p=>`• ${p.emoji||'📦'} ${p.name} — ฿${p.price.toFixed(2)}`).join('\n')+(sorted.length>8?`\n...อีก ${sorted.length-8} รายการ`:'');
   }
 
   // ── สินค้าขายดีสุด ──
-  if (q.includes('ขายดี') || q.includes('ขายดีสุด') || q.includes('popular') || q.includes('นิยม')) {
-    const countMap = {};
-    sales.forEach(s=>s.items.forEach(i=>{ countMap[i.name]=(countMap[i.name]||0)+i.qty; }));
-    const sorted = Object.entries(countMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if (q.includes('ขายดี')||q.includes('นิยม')||q.includes('ยอดนิยม')||q.includes('ฮิต')) {
+    const map={};
+    sales.forEach(s=>s.items.forEach(i=>{ map[i.name]=(map[i.name]||0)+i.qty; }));
+    const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5);
     if (!sorted.length) return 'ยังไม่มีข้อมูลยอดขายครับ';
-    return `🏆 **สินค้าขายดีสุด**\n` + sorted.map(([name,qty],i)=>`${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${name} — ${qty} ชิ้น`).join('\n');
+    return `🏆 **Top 5 สินค้าขายดี**\n`+sorted.map(([name,qty],i)=>`${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${name} — **${qty} ชิ้น**`).join('\n');
   }
 
   // ── สินค้ากำไรดีสุด ──
-  if (q.includes('กำไรดี') || q.includes('กำไรสูง') || q.includes('กำไรมาก')) {
-    const sorted = [...products].filter(p=>p.price>0).sort((a,b)=>((b.price-b.cost)/b.price)-((a.price-a.cost)/a.price)).slice(0,5);
-    return `💎 **สินค้ากำไร % สูงสุด**\n` + sorted.map((p,i)=>`${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${p.emoji||'📦'} ${p.name} — ${(((p.price-p.cost)/p.price)*100).toFixed(0)}% (฿${(p.price-p.cost).toFixed(2)}/ชิ้น)`).join('\n');
+  if (q.includes('กำไรดี')||q.includes('กำไรสูง')||q.includes('กำไรมาก')||q.includes('margin')) {
+    const sorted=[...products].filter(p=>p.price>0).sort((a,b)=>((b.price-b.cost)/b.price)-((a.price-a.cost)/a.price)).slice(0,5);
+    return `💎 **Top 5 สินค้ากำไร % สูง**\n`+sorted.map((p,i)=>`${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${p.emoji||'📦'} ${p.name}\n   ${(((p.price-p.cost)/p.price)*100).toFixed(0)}% | กำไร ฿${(p.price-p.cost).toFixed(2)}/ชิ้น`).join('\n');
+  }
+
+  // ── สินค้าราคาถูกสุด / แพงสุด ──
+  if (q.includes('ถูกสุด')||q.includes('ราคาต่ำ')) {
+    const p=[...products].sort((a,b)=>a.price-b.price)[0];
+    return p?`🏷️ สินค้าราคาถูกสุด: **${p.emoji||'📦'} ${p.name}** ฿${p.price.toFixed(2)} ครับ`:'ไม่มีข้อมูลครับ';
+  }
+  if (q.includes('แพงสุด')||q.includes('ราคาสูง')) {
+    const p=[...products].sort((a,b)=>b.price-a.price)[0];
+    return p?`💎 สินค้าราคาแพงสุด: **${p.emoji||'📦'} ${p.name}** ฿${p.price.toFixed(2)} ครับ`:'ไม่มีข้อมูลครับ';
   }
 
   // ── จำนวนสินค้า ──
-  if (q.includes('สินค้าทั้งหมด') || q.includes('มีสินค้า') || q.includes('จำนวนสินค้า')) {
-    const low = products.filter(p=>p.stock>0&&p.stock<=p.alert).length;
-    const empty = products.filter(p=>p.stock===0).length;
-    return `📦 **สินค้าทั้งหมด ${products.length} รายการ**\n✅ ปกติ ${products.length-low-empty} | ⚠️ ใกล้หมด ${low} | 🚫 หมด ${empty} ครับ`;
+  if (q.includes('มีสินค้า')||q.includes('สินค้าทั้งหมด')||q.includes('จำนวนสินค้า')) {
+    const low=products.filter(p=>p.stock>0&&p.stock<=p.alert).length;
+    const empty=products.filter(p=>p.stock===0).length;
+    return `📦 **สินค้าทั้งหมด ${products.length} รายการ**\n✅ ปกติ ${products.length-low-empty} | ⚠️ ใกล้หมด ${low} | 🚫 หมด ${empty}`;
   }
 
   // ── บิลล่าสุด ──
-  if (q.includes('บิลล่าสุด') || q.includes('ล่าสุด') || q.includes('บิลสุดท้าย')) {
-    if (!sales.length) return 'ยังไม่มีบิลครับ';
-    const s = [...sales].sort((a,b)=>new Date(b.time)-new Date(a.time))[0];
-    const d = new Date(s.time);
-    const t = d.toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-    return `🧾 **บิลล่าสุด** (${t})\n${s.items.map(i=>`• ${i.name} ×${i.qty}`).join('\n')}\n**รวม ฿${s.total.toFixed(2)}** | ${s.method==='cash'?'💵 เงินสด':'📱 QR/โอน'}`;
+  if (q.includes('บิลล่าสุด')||q.includes('ล่าสุด')||q.includes('บิลสุดท้าย')||q.includes('ขายล่าสุด')) {
+    if (!sales.length) return 'ยังไม่มีบิลเลยครับ';
+    const s=[...sales].sort((a,b)=>new Date(b.time)-new Date(a.time))[0];
+    const t=new Date(s.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `🧾 **บิลล่าสุด** (${t})\n${s.items.map(i=>`• ${i.name} ×${i.qty} = ฿${(i.price*i.qty).toFixed(0)}`).join('\n')}\n**รวม ฿${s.total.toFixed(2)}** | ${s.method==='cash'?'💵 เงินสด':'📱 QR/โอน'}`;
+  }
+
+  // ── จำนวนบิลวันนี้ ──
+  if ((q.includes('บิล')||q.includes('ลูกค้า'))&&q.includes('วันนี้')) {
+    const s=todaySales();
+    return `🧾 วันนี้ขายไปแล้ว **${s.length} บิล**\nยอดรวม ฿${s.reduce((a,x)=>a+x.total,0).toFixed(0)} ครับ`;
   }
 
   // ── หมวดหมู่ ──
-  if (q.includes('หมวด') || q.includes('ประเภท') || q.includes('category')) {
-    return `🏷️ **หมวดหมู่ทั้งหมด ${categories.length} หมวด**\n` + categories.map(c=>{
-      const count = products.filter(p=>p.cat===c.name).length;
-      return `• ${c.emoji} ${c.name} (${count} รายการ)`;
-    }).join('\n');
+  if (q.includes('หมวด')||q.includes('ประเภท')||q.includes('category')) {
+    return `🏷️ **หมวดหมู่ ${categories.length} หมวด**\n`+categories.map(c=>`• ${c.emoji} ${c.name} (${products.filter(p=>p.cat===c.name).length} รายการ)`).join('\n');
   }
 
-  // ── วิธีใช้ / ช่วยเหลือ ──
-  if (q.includes('วิธี') || q.includes('ช่วย') || q.includes('help') || q.includes('ทำยังไง')) {
-    return `📖 **คำถามที่ถามได้**\n• ยอดขายวันนี้/เดือนนี้/ทั้งหมด\n• กำไรวันนี้/เดือนนี้\n• สต็อก [ชื่อสินค้า]\n• สินค้าใกล้หมด/หมดสต็อก\n• สินค้าขายดีสุด\n• สินค้ากำไรดีสุด\n• ราคา [ชื่อสินค้า]\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด`;
+  // ── คำนวณ ──
+  const calcMatch = q.match(/(\d+(?:\.\d+)?)\s*[×x\*]\s*(\d+(?:\.\d+)?)/);
+  if (calcMatch) {
+    const result = parseFloat(calcMatch[1]) * parseFloat(calcMatch[2]);
+    return `🧮 ${calcMatch[1]} × ${calcMatch[2]} = **฿${result.toFixed(2)}** ครับ`;
   }
 
-  // ── ค้นหาสินค้า ──
-  const found = products.filter(p=>q.includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(q.replace(/[?？]/g,'').trim()));
-  if (found.length) {
-    return found.map(p=>`${p.emoji||'📦'} **${p.name}**\nราคา ฿${p.price.toFixed(2)} | สต็อก ${p.stock} ${p.unit||'ชิ้น'} | ${p.cat}`).join('\n\n');
+  // ── วิธีใช้งาน ──
+  if (q.includes('วิธี')||q.includes('ช่วย')||q.includes('help')||q.includes('ทำยังไง')||q.includes('คำถาม')) {
+    return `📖 **ถามได้เลยครับ เช่น**\n• "ยอดขายวันนี้/เดือนนี้/ทั้งหมด"\n• "กำไรวันนี้/เดือนนี้"\n• "สินค้าใกล้หมด/หมดสต็อก"\n• "สต็อก [ชื่อสินค้า] เหลือเท่าไหร่"\n• "ขายดีสุดคืออะไร"\n• "กำไรดีสุดคืออะไร"\n• "บิลล่าสุด"\n• "สรุปวันนี้"\n• "จ่ายเงินสดกี่บาท"\n• "สินค้าราคาถูกสุด/แพงสุด"`;
   }
+
+  // ── ค้นหาสินค้าชื่อ ──
+  const found = products.filter(p => {
+    const name = p.name.toLowerCase();
+    return q.includes(name) || name.includes(q.replace(/[?？เท่าไหร่ราคาสต็อก]/g,'').trim());
+  });
+  if (found.length) return found.map(p=>{
+    const st=p.stock===0?'🚫 หมด':p.stock<=p.alert?`⚠️ เหลือ ${p.stock}`:`✅ ${p.stock}`;
+    return `${p.emoji||'📦'} **${p.name}**\n฿${p.price.toFixed(2)} | สต็อก ${st} ${p.unit||'ชิ้น'} | ${p.cat}`;
+  }).join('\n\n');
 
   // ── fallback ──
-  const tips = ['สต็อกใกล้หมด?','ยอดขายวันนี้','กำไรเดือนนี้','สินค้าขายดีสุด','บิลล่าสุด'];
-  return `ขอโทษครับ ไม่แน่ใจว่าถามเรื่องอะไร 😅\nลองถามแบบนี้ได้เลยครับ:\n` + tips.map(t=>`• ${t}`).join('\n');
+  return `ขอโทษครับ ไม่เข้าใจคำถามนี้ 😅\nลองถามใหม่ได้เลยนะครับ เช่น\n• "ยอดขายวันนี้"\n• "สินค้าใกล้หมด"\n• "สรุปวันนี้"\nหรือพิมพ์ "ช่วย" เพื่อดูคำถามทั้งหมด`;
 }
 
 // ══════════════════════════════════════════
