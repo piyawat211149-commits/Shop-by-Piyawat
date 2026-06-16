@@ -1190,9 +1190,14 @@ async function save() {
     localStorage.setItem('pos_cats',     JSON.stringify(categories));
     return;
   }
+  // บันทึก products เป็น object key=id เพื่อป้องกันข้อมูลหาย
+  const productsObj = {};
+  products.forEach(p => { productsObj[p.id] = p; });
+  const catsObj = {};
+  categories.forEach((c, i) => { catsObj[i] = c; });
   await Promise.all([
-    db.ref('products').set(products),
-    db.ref('categories').set(categories),
+    db.ref('products').set(productsObj),
+    db.ref('categories').set(catsObj),
   ]);
 }
 
@@ -1213,10 +1218,17 @@ function initFirebaseListeners() {
   db.ref('products').on('value', snap => {
     const val = snap.val();
     if (val) {
-      products = Array.isArray(val) ? val : Object.values(val);
-      nextId = products.length ? Math.max(...products.map(p=>p.id||0)) + 1 : 1;
+      // รองรับทั้ง Array และ Object format
+      const arr = Object.values(val).filter(p => p && p.id && p.name);
+      if (arr.length > 0) {
+        products = arr;
+        nextId = Math.max(...products.map(p => p.id || 0)) + 1;
+      }
     } else {
-      db.ref('products').set(DEFAULT_PRODUCTS);
+      // ยังไม่มีข้อมูล → ใส่ค่าเริ่มต้น
+      const productsObj = {};
+      DEFAULT_PRODUCTS.forEach(p => { productsObj[p.id] = p; });
+      db.ref('products').set(productsObj);
     }
     renderPosGrid();
     const pg = document.getElementById('page-products');
@@ -1227,10 +1239,15 @@ function initFirebaseListeners() {
   db.ref('categories').on('value', snap => {
     const val = snap.val();
     if (val) {
-      categories = Array.isArray(val) ? val : Object.values(val);
-      categories.forEach(c => CAT_EMOJI[c.name] = c.emoji);
+      const arr = Object.values(val).filter(c => c && c.name);
+      if (arr.length > 0) {
+        categories = arr;
+        categories.forEach(c => CAT_EMOJI[c.name] = c.emoji);
+      }
     } else {
-      db.ref('categories').set(DEFAULT_CATS);
+      const catsObj = {};
+      DEFAULT_CATS.forEach((c, i) => { catsObj[i] = c; });
+      db.ref('categories').set(catsObj);
     }
     renderPosGrid();
   });
