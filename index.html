@@ -918,6 +918,51 @@
   .cl-detail { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-top: 4px; white-space: pre-wrap; }
   .cl-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: 2px; }
 
+  /* ── INBOX ── */
+  .inbox-role-btn {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--sans);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text);
+  }
+  .inbox-role-btn:hover, .inbox-role-btn.selected {
+    border-color: var(--primary);
+    background: var(--primary-pale);
+  }
+  .inbox-msg-row { display: flex; gap: 8px; align-items: flex-end; }
+  .inbox-msg-row.mine { flex-direction: row-reverse; }
+  .inbox-bubble {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .inbox-bubble.theirs {
+    background: var(--surface2);
+    border-bottom-left-radius: 4px;
+    color: var(--text);
+  }
+  .inbox-bubble.mine {
+    background: var(--primary);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .inbox-meta { font-size: 11px; color: var(--text-3); margin: 0 4px 2px; }
+  .inbox-sender-name { font-size: 11px; font-weight: 600; color: var(--text-3); margin-bottom: 3px; padding-left: 4px; }
+  .inbox-avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: var(--primary-pale); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .inbox-system-msg { text-align: center; font-size: 12px; color: var(--text-3); padding: 4px 0; font-style: italic; }
+  .inbox-unread-dot { width: 8px; height: 8px; background: #e53e3e; border-radius: 50%; display: inline-block; }
+
   /* ── CHATBOT ── */
   .chat-fab {
     position: fixed;
@@ -1286,6 +1331,7 @@
     <button class="nav-tab" onclick="showPage('products',this)">📦 <span>สินค้า</span></button>
     <button class="nav-tab" onclick="showPage('report',this)">📊 <span>รายงาน</span></button>
     <button class="nav-tab" onclick="showPage('changelog',this)">📝 <span>อัปเดต</span></button>
+    <button class="nav-tab" onclick="showPage('inbox',this)">💬 <span>ข้อความ</span></button>
   </div>
   <div id="sync-indicator" style="display:none;align-items:center;gap:6px;color:rgba(255,255,255,0.8);font-size:13px;">
     <div style="width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite;"></div>
@@ -1306,6 +1352,9 @@
   </button>
   <button class="bottom-nav-btn" onclick="showPage('changelog',this)" id="bn-changelog">
     <span class="bn-icon">📝</span>อัปเดต
+  </button>
+  <button class="bottom-nav-btn" onclick="showPage('inbox',this)" id="bn-inbox">
+    <span class="bn-icon">💬</span>ข้อความ<span id="inbox-badge" style="display:none;background:#e53e3e;color:#fff;font-size:9px;border-radius:99px;padding:1px 5px;margin-left:2px;vertical-align:top;"></span>
   </button>
 </nav>
 
@@ -1525,6 +1574,61 @@
     <div class="modal-btns" style="margin-top:20px;">
       <button class="btn-cancel" onclick="closeChangelogModal()">ยกเลิก</button>
       <button class="btn-confirm" onclick="saveChangelog()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ INBOX PAGE ═══════════════════════════════ -->
+<div id="page-inbox" class="page">
+  <div class="page-header">
+    <h1 class="page-title">💬 กล่องข้อความ</h1>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="inbox-online-count" style="font-size:13px;color:var(--text-3);"></span>
+    </div>
+  </div>
+
+  <!-- Role selector -->
+  <div id="inbox-role-pick" style="max-width:500px;margin:40px auto;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">💬</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text);">เข้าสู่ห้องแชท</div>
+    <div style="font-size:14px;color:var(--text-3);margin-bottom:28px;">เลือกบทบาทและใส่ชื่อของคุณ</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <button class="inbox-role-btn" id="role-btn-owner" onclick="selectInboxRole('owner')">
+        <span style="font-size:32px;">👑</span>
+        <div style="font-weight:700;font-size:15px;margin-top:6px;">เจ้าของร้าน</div>
+        <div style="font-size:12px;color:var(--text-3);">เห็นทุกข้อความ</div>
+      </button>
+      <button class="inbox-role-btn" id="role-btn-staff" onclick="selectInboxRole('staff')">
+        <span style="font-size:32px;">🧑‍💼</span>
+        <div style="font-weight:700;font-size:15px;margin-top:6px;">พนักงาน</div>
+        <div style="font-size:12px;color:var(--text-3);">คุยกับเจ้าของร้าน</div>
+      </button>
+    </div>
+    <input class="form-input" type="text" id="inbox-name-input" placeholder="ใส่ชื่อของคุณ..." style="margin-bottom:14px;text-align:center;font-size:16px;">
+    <button class="btn-confirm" style="width:100%;padding:13px;" onclick="enterInbox()">เข้าห้องแชท →</button>
+  </div>
+
+  <!-- Chat UI (hidden until role picked) -->
+  <div id="inbox-chat-ui" style="display:none;max-width:700px;margin:0 auto;">
+    <!-- Header bar -->
+    <div style="background:var(--surface);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="inbox-my-avatar" style="font-size:28px;"></span>
+        <div>
+          <div style="font-weight:700;font-size:15px;" id="inbox-my-name-label"></div>
+          <div style="font-size:12px;color:var(--text-3);" id="inbox-room-label"></div>
+        </div>
+      </div>
+      <button onclick="leaveInbox()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:var(--sans);font-size:13px;color:var(--text-3);">ออกจากห้อง</button>
+    </div>
+
+    <!-- Messages -->
+    <div id="inbox-messages" style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);height:420px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;"></div>
+
+    <!-- Input bar -->
+    <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-top:12px;display:flex;gap:10px;align-items:flex-end;">
+      <textarea id="inbox-msg-input" class="form-input" rows="1" placeholder="พิมพ์ข้อความ..." style="flex:1;resize:none;max-height:120px;overflow-y:auto;padding:10px 14px;font-size:15px;line-height:1.4;" onkeydown="inboxKeyDown(event)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button onclick="sendInboxMsg()" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 18px;cursor:pointer;font-size:18px;flex-shrink:0;line-height:1;">➤</button>
     </div>
   </div>
 </div>
@@ -1937,6 +2041,7 @@ function showPage(id) {
   if(id==='report') renderReport();
   if(id==='pos') renderPosGrid();
   if(id==='changelog') renderChangelog();
+  if(id==='inbox') { inboxLastRead = Date.now(); updateInboxBadge(0); }
 }
 
 // ══════════════════════════════════════════
@@ -3307,6 +3412,151 @@ function processChat(input) {
 
   // ── fallback ──
   return `ขอโทษครับ ไม่เข้าใจคำถามนี้ 😅\nลองถามใหม่ได้เลยนะครับ เช่น\n• "ยอดขายวันนี้"\n• "สินค้าใกล้หมด"\n• "สรุปวันนี้"\nหรือพิมพ์ "ช่วย" เพื่อดูคำถามทั้งหมด`;
+}
+
+// ══════════════════════════════════════════
+//  INBOX
+// ══════════════════════════════════════════
+let inboxRole = null;   // 'owner' | 'staff'
+let inboxName = '';
+let inboxSelectedRole = null;
+let inboxListener = null;
+let inboxLastRead = 0;
+let inboxMsgCount = 0;
+
+const ROLE_META = {
+  owner: { avatar: '👑', label: 'เจ้าของร้าน', room: 'ห้องแชทกับพนักงาน' },
+  staff: { avatar: '🧑‍💼', label: 'พนักงาน', room: 'ห้องแชทกับเจ้าของร้าน' }
+};
+
+function selectInboxRole(role) {
+  inboxSelectedRole = role;
+  document.querySelectorAll('.inbox-role-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('role-btn-' + role).classList.add('selected');
+  const nameInput = document.getElementById('inbox-name-input');
+  if (!nameInput.value) nameInput.value = ROLE_META[role].label;
+  nameInput.focus();
+}
+
+function enterInbox() {
+  const name = document.getElementById('inbox-name-input').value.trim();
+  if (!inboxSelectedRole) { showToast('กรุณาเลือกบทบาทก่อนครับ', 'warn'); return; }
+  if (!name) { showToast('กรุณาใส่ชื่อก่อนครับ', 'warn'); return; }
+  inboxRole = inboxSelectedRole;
+  inboxName = name;
+  const meta = ROLE_META[inboxRole];
+
+  document.getElementById('inbox-role-pick').style.display = 'none';
+  document.getElementById('inbox-chat-ui').style.display = 'block';
+  document.getElementById('inbox-my-avatar').textContent = meta.avatar;
+  document.getElementById('inbox-my-name-label').textContent = name + ' (' + meta.label + ')';
+  document.getElementById('inbox-room-label').textContent = meta.room;
+
+  // Post join notice
+  if (db) {
+    db.ref('inbox').push({ type: 'system', text: name + ' (' + meta.label + ') เข้าร่วมห้องแชท', ts: Date.now() });
+    startInboxListener();
+  } else {
+    renderInboxFallback();
+  }
+  document.getElementById('inbox-msg-input').focus();
+}
+
+function leaveInbox() {
+  if (db && inboxRole) {
+    const meta = ROLE_META[inboxRole];
+    db.ref('inbox').push({ type: 'system', text: inboxName + ' (' + meta.label + ') ออกจากห้องแชท', ts: Date.now() });
+  }
+  if (inboxListener) { db && db.ref('inbox').off('value', inboxListener); inboxListener = null; }
+  inboxRole = null; inboxName = ''; inboxSelectedRole = null;
+  document.getElementById('inbox-role-pick').style.display = '';
+  document.getElementById('inbox-chat-ui').style.display = 'none';
+  document.getElementById('inbox-name-input').value = '';
+  document.querySelectorAll('.inbox-role-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('inbox-messages').innerHTML = '';
+}
+
+function startInboxListener() {
+  if (!db) return;
+  const msgBox = document.getElementById('inbox-messages');
+  inboxLastRead = Date.now();
+
+  inboxListener = db.ref('inbox').orderByChild('ts').limitToLast(100).on('value', snap => {
+    const val = snap.val();
+    const msgs = val ? Object.values(val).sort((a,b)=>a.ts-b.ts) : [];
+    msgBox.innerHTML = msgs.length ? '' : '<div class="inbox-system-msg">ยังไม่มีข้อความ เริ่มพิมพ์ได้เลยครับ 💬</div>';
+    msgs.forEach(m => {
+      const el = document.createElement('div');
+      if (m.type === 'system') {
+        el.className = 'inbox-system-msg';
+        el.textContent = '— ' + m.text + ' —';
+      } else {
+        const isMine = m.sender === inboxName && m.role === inboxRole;
+        const timeStr = new Date(m.ts).toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false });
+        const meta = ROLE_META[m.role] || { avatar: '💬' };
+        el.innerHTML = `<div class="inbox-msg-row ${isMine?'mine':''}">
+          <div class="inbox-avatar-sm">${meta.avatar}</div>
+          <div>
+            ${!isMine ? `<div class="inbox-sender-name">${escHtml(m.sender)}</div>` : ''}
+            <div class="inbox-bubble ${isMine?'mine':'theirs'}">${escHtml(m.text)}</div>
+            <div class="inbox-meta" style="text-align:${isMine?'right':'left'}">${timeStr}</div>
+          </div>
+        </div>`;
+      }
+      msgBox.appendChild(el);
+    });
+    msgBox.scrollTop = msgBox.scrollHeight;
+
+    // Update unread badge (when not on inbox page)
+    const pg = document.getElementById('page-inbox');
+    if (!pg.classList.contains('active')) {
+      const newCount = msgs.filter(m => m.ts > inboxLastRead && m.type !== 'system' && !(m.sender === inboxName && m.role === inboxRole)).length;
+      updateInboxBadge(newCount);
+    } else {
+      inboxLastRead = Date.now();
+      updateInboxBadge(0);
+    }
+  });
+}
+
+function renderInboxFallback() {
+  document.getElementById('inbox-messages').innerHTML =
+    '<div class="inbox-system-msg">⚠️ ต้องเชื่อมต่อ Firebase เพื่อใช้งานแชทแบบ real-time ครับ</div>';
+}
+
+function sendInboxMsg() {
+  const input = document.getElementById('inbox-msg-input');
+  const text = input.value.trim();
+  if (!text || !inboxRole) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  const msg = { type: 'msg', sender: inboxName, role: inboxRole, text, ts: Date.now() };
+  if (db) {
+    db.ref('inbox').push(msg);
+  } else {
+    showToast('ต้องเชื่อมต่อ Firebase ครับ', 'warn');
+  }
+}
+
+function inboxKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendInboxMsg(); }
+}
+
+function updateInboxBadge(count) {
+  const badge = document.getElementById('inbox-badge');
+  const navBadge = document.getElementById('inbox-nav-badge');
+  if (count > 0) {
+    if (badge) { badge.textContent = count; badge.style.display = 'inline'; }
+    if (navBadge) { navBadge.textContent = count; navBadge.style.display = 'inline'; }
+  } else {
+    if (badge) badge.style.display = 'none';
+    if (navBadge) navBadge.style.display = 'none';
+  }
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ══════════════════════════════════════════
