@@ -3062,21 +3062,22 @@ let changelogs = [];
 const CL_TYPE_LABEL = { fix:'🔧 แก้ไขปัญหา', feature:'✨ เพิ่มฟีเจอร์', update:'🔄 อัปเดต', note:'📌 หมายเหตุ' };
 const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
-// แปลง date string (YYYY-MM-DD) → timestamp เที่ยงวันเวลาไทย (UTC+7)
-function dateStrToTs(dateStr, offsetMinutes = 0) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  // เที่ยงวันไทย (UTC+7) = 05:00 UTC
-  return Date.UTC(y, m - 1, d, 5, 0, 0) + offsetMinutes * 60000;
-}
-
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 13,
+    title: 'แก้เวลาในบันทึกอัปเดตให้ตรงกับเวลาจริง',
+    type: 'fix',
+    date: '2026-06-17',
+    detail: 'แก้ระบบเวลาใน changelog ที่แสดง 12:0X ทุกรายการ\n- เปลี่ยนจาก timestamp ปลอม (เที่ยงวัน+offset) เป็นเวลาจริงตอน seed เข้า Firebase\n- เพิ่ม migration แก้ไข entries เก่าที่เวลาผิดใน Firebase อัตโนมัติ\n- รายการใหม่ที่สร้างจากปุ่ม "เพิ่มบันทึก" ใช้เวลาจริงอยู่แล้ว',
+    order: 0,
+  },
   {
     id: 12,
     title: 'ใบเสร็จแสดงรายละเอียดสินค้าเพิ่ม',
     type: 'feature',
     date: '2026-06-17',
     detail: 'ใบเสร็จแสดงรายละเอียดเพิ่มเติมของสินค้าทุกรายการ\n- แสดงยี่ห้อ/แบรนด์ และขนาด/น้ำหนักใต้ชื่อสินค้า\n- แสดงเลขบาร์โค้ด\n- แสดงหน่วยนับ (ขวด, ซอง, แพ็ค ฯลฯ) ต่อท้ายจำนวน\n- แสดงเลขบิลและจำนวนรายการรวมในใบเสร็จพิมพ์\n- อัปเดตทั้ง 3 จุด: modal ชำระเงิน, modal สำเร็จ, และหน้าพิมพ์ใบเสร็จ',
-    get createdAt() { return dateStrToTs('2026-06-17', 11); },
+    order: 1,
   },
   {
     id: 11,
@@ -3084,7 +3085,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มระบบแจ้งเตือนเมื่อมีการอัปเดตระบบใหม่\n- แสดงจุดแจ้งเตือนสีแดงบนแท็บ "อัปเดต" เมื่อมีรายการใหม่ที่ยังไม่ได้อ่าน\n- แสดง popup แจ้งเตือนอัตโนมัติพร้อมสรุปรายการอัปเดตใหม่\n- จำสถานะการอ่านใน localStorage ข้ามเซสชันได้\n- กดดูรายละเอียดจะพาไปหน้าอัปเดตโดยตรง\n- รองรับทั้ง Firebase real-time และ localStorage fallback',
-    get createdAt() { return dateStrToTs('2026-06-17', 10); },
+    order: 2,
   },
   {
     id: 10,
@@ -3092,7 +3093,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มบอทลอยอยู่มุมขวาล่าง กดปุ่ม 🤖 เพื่อเปิด\nถามได้เลยว่า:\n• ยอดขาย/กำไร วันนี้ เดือนนี้ ทั้งหมด\n• สินค้าใกล้หมด/หมดสต็อก\n• สต็อกสินค้าชิ้นนั้นๆ\n• สินค้าขายดีสุด / กำไรดีสุด\n• ราคาสินค้า\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด\nบอทดึงข้อมูลจริงจาก Firebase แบบ real-time',
-    get createdAt() { return dateStrToTs('2026-06-17', 9); },
+    order: 3,
   },
   {
     id: 9,
@@ -3100,7 +3101,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ปรับหน้าตาให้ใช้งานบนสมาร์ทโฟนได้เต็มรูปแบบ\n- เพิ่ม Bottom Navigation Bar แทน top tabs บนมือถือ\n- ตารางสินค้าเปลี่ยนเป็น card list อ่านง่ายขึ้น\n- Modal เปิดจากด้านล่างแบบ bottom sheet\n- ปุ่มและ touch target ใหญ่ขึ้นเหมาะกับนิ้วมือ\n- input font size 16px ป้องกัน iOS zoom อัตโนมัติ\n- ปฏิทินและการ์ดต่างๆ ปรับขนาดให้พอดีหน้าจอเล็ก',
-    get createdAt() { return dateStrToTs('2026-06-17', 8); },
+    order: 4,
   },
   {
     id: 8,
@@ -3108,7 +3109,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ 2 จุด\n- บันทึกอัปเดตเดิมแสดงเวลา 07:00 เพราะ timestamp เป็น UTC+0 แก้โดยใช้เวลาเครื่อง (local time) แทน\n- สินค้าที่ไม่มีบาร์โค้ดจะได้รับ EAN-13 อัตโนมัติเมื่อระบบตรวจพบ',
-    get createdAt() { return dateStrToTs('2026-06-17', 7); },
+    order: 5,
   },
   {
     id: 7,
@@ -3116,7 +3117,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่ม 2 ฟีเจอร์ใหม่\n- บันทึกอัปเดตแสดงวันที่และเวลาแบบเต็ม (วัน/เดือน/ปี ชั่วโมง:นาที)\n- เพิ่มสินค้าใหม่จะสร้างเลขบาร์โค้ด 13 หลักให้อัตโนมัติ (EAN-13 format ขึ้นต้นด้วย 999) แก้ไขเองได้หากต้องการ',
-    get createdAt() { return dateStrToTs('2026-06-17', 6); },
+    order: 6,
   },
   {
     id: 6,
@@ -3124,7 +3125,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ออกแบบหน้าจัดการสินค้าใหม่ทั้งหมด\n- เพิ่มแถบสรุป: สินค้าทั้งหมด / ใกล้หมด / หมดสต็อก / ปกติ\n- เพิ่มช่อง "⚠️ สินค้าต้องติดตาม" แสดงเฉพาะสินค้าใกล้หมดและหมดสต็อก กดเพื่อแก้ไขได้เลย\n- เพิ่มตัวเลือกเรียงสินค้า: ชื่อ / หมวดหมู่ / สต็อก / ราคา\n- ตารางสินค้าแสดง % กำไรต่อชิ้นและบาร์โค้ดในบรรทัดเดียวกัน\n- เมื่อเรียงตามหมวดหมู่จะมีหัวกลุ่มคั่นแต่ละหมวด',
-    get createdAt() { return dateStrToTs('2026-06-17', 5); },
+    order: 7,
   },
   {
     id: 1,
@@ -3132,7 +3133,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มแท็บ "📝 อัปเดต" สำหรับบันทึกการแก้ไขและฟีเจอร์ใหม่\n- เพิ่ม/แก้ไข/ลบบันทึกได้\n- เลือกประเภท: แก้ไขปัญหา / เพิ่มฟีเจอร์ / อัปเดต / หมายเหตุ\n- Sync real-time ผ่าน Firebase ทุกเครื่องเห็นพร้อมกัน',
-    get createdAt() { return dateStrToTs('2026-06-17', 4); },
+    order: 8,
   },
   {
     id: 2,
@@ -3140,7 +3141,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'ลบ toast "เชื่อมต่อ Firebase แล้ว" ที่ขึ้นทุกครั้งเมื่อเปิดเว็บ เพราะบังหน้าจอโดยไม่จำเป็น',
-    get createdAt() { return dateStrToTs('2026-06-17', 3); },
+    order: 9,
   },
   {
     id: 3,
@@ -3148,7 +3149,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ไข toast notification ให้แสดงผล 4 วินาทีแล้วค่อยๆ จางหายไปแทนที่จะค้างอยู่บนหน้าจอตลอด',
-    get createdAt() { return dateStrToTs('2026-06-17', 2); },
+    order: 10,
   },
   {
     id: 4,
@@ -3156,7 +3157,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนวิธีเก็บข้อมูลสินค้าใน Firebase จาก array → object keyed by ID\n- เดิม: db.ref("products").set(array) ทำให้เครื่อง A ทับข้อมูลเครื่อง B\n- ใหม่: db.ref("products/ID").set(p) อัปเดตเฉพาะสินค้าที่แก้ไข ไม่กระทบเครื่องอื่น\n- ทุกเครื่องรับข้อมูลอัปเดต real-time อัตโนมัติผ่าน Firebase listener',
-    get createdAt() { return dateStrToTs('2026-06-17', 1); },
+    order: 11,
   },
   {
     id: 5,
@@ -3164,22 +3165,60 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนการหักสต็อกไปใช้ Firebase Transaction แทนการแก้ค่าในหน่วยความจำ\n- เดิม: ลดค่า stock ในตัวแปร → save ทีหลัง (เกิด race condition ถ้า Firebase listener ยิงก่อน)\n- ใหม่: db.ref("products/ID/stock").transaction() อัปเดต atomic ทันที ไม่มี race condition\n- รองรับการขายพร้อมกัน 2 เครื่องได้อย่างถูกต้อง',
-    get createdAt() { return dateStrToTs('2026-06-17', 0); },
+    order: 12,
   },
 ];
+
+function seedChangelogEntry(cl) {
+  const data = { title: cl.title, type: cl.type, date: cl.date, detail: cl.detail, id: cl.id,
+    createdAt: Date.now() - (cl.order || 0) * 60000 };
+  if (db) {
+    db.ref('changelogs').push(data);
+  }
+  return data;
+}
+
+function migrateChangelogTimestamps() {
+  if (!db) return;
+  if (localStorage.getItem('pos_cl_ts_fixed_v2')) return;
+
+  const noonBase = Date.UTC(2026, 5, 17, 5, 0, 0);
+  const noonEnd = noonBase + 20 * 60000;
+
+  const fakeEntries = changelogs.filter(cl =>
+    cl.fbKey && cl.createdAt >= noonBase && cl.createdAt <= noonEnd
+  );
+
+  if (fakeEntries.length === 0) {
+    localStorage.setItem('pos_cl_ts_fixed_v2', '1');
+    return;
+  }
+
+  fakeEntries.sort((a, b) => a.createdAt - b.createdAt);
+  const now = Date.now();
+  const spacing = 60000;
+  fakeEntries.forEach((cl, idx) => {
+    const newTs = now - (fakeEntries.length - 1 - idx) * spacing;
+    db.ref('changelogs/' + cl.fbKey + '/createdAt').set(newTs);
+  });
+
+  localStorage.setItem('pos_cl_ts_fixed_v2', '1');
+}
 
 function initChangelogListeners() {
   if (!db) {
     changelogs = JSON.parse(localStorage.getItem('pos_changelogs') || 'null');
     if (!changelogs) {
-      changelogs = [...DEFAULT_CHANGELOGS];
+      changelogs = DEFAULT_CHANGELOGS.map(cl => ({...cl, createdAt: Date.now() - (cl.order || 0) * 60000}));
       localStorage.setItem('pos_changelogs', JSON.stringify(changelogs));
     } else {
-      // Seed any new DEFAULT_CHANGELOGS not yet in local storage
       const existingIds = new Set(changelogs.map(cl => cl.id));
       let added = false;
       DEFAULT_CHANGELOGS.forEach(cl => {
-        if (!existingIds.has(cl.id)) { changelogs.push(cl); added = true; }
+        if (!existingIds.has(cl.id)) {
+          changelogs.push({...cl, createdAt: Date.now() - (cl.order || 0) * 60000});
+          added = true;
+        }
       });
       if (added) localStorage.setItem('pos_changelogs', JSON.stringify(changelogs));
     }
@@ -3190,13 +3229,13 @@ function initChangelogListeners() {
     const val = snap.val();
     if (val) {
       changelogs = Object.entries(val).map(([key, cl]) => ({...cl, fbKey: key})).sort((a,b) => b.createdAt - a.createdAt);
-      // Auto-seed: push any DEFAULT_CHANGELOGS entry not yet in Firebase (matched by .id field)
       const existingIds = new Set(changelogs.map(cl => cl.id));
       DEFAULT_CHANGELOGS.forEach(cl => {
-        if (!existingIds.has(cl.id)) db.ref('changelogs').push(cl);
+        if (!existingIds.has(cl.id)) seedChangelogEntry(cl);
       });
+      migrateChangelogTimestamps();
     } else {
-      DEFAULT_CHANGELOGS.forEach(cl => db.ref('changelogs').push(cl));
+      DEFAULT_CHANGELOGS.forEach(cl => seedChangelogEntry(cl));
     }
     const pg = document.getElementById('page-changelog');
     if (pg.classList.contains('active')) renderChangelog();
