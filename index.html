@@ -1546,15 +1546,6 @@
   <!-- Summary strip -->
   <div class="prod-summary-strip" id="prod-summary-strip"></div>
 
-  <!-- Stock alert section -->
-  <div id="stock-alert-section" style="display:none;margin-bottom:20px;">
-    <div class="stock-alert-header">
-      <span>⚠️ สินค้าต้องติดตาม</span>
-      <button class="filter-btn" onclick="toggleAlertSection()" id="alert-toggle-btn">ซ่อน</button>
-    </div>
-    <div class="stock-alert-grid" id="stock-alert-grid"></div>
-  </div>
-
   <!-- Main table -->
   <div class="product-table">
     <div class="table-search" style="justify-content:space-between;flex-wrap:wrap;gap:10px;">
@@ -1620,6 +1611,15 @@
       <div class="stat-value" id="stat-all">฿0</div>
       <div class="stat-sub" id="stat-all-tx">ทุกเวลา</div>
     </div>
+  </div>
+
+  <!-- Stock alert section -->
+  <div id="stock-alert-section" style="display:none;margin-bottom:20px;">
+    <div class="stock-alert-header">
+      <span>⚠️ สินค้าต้องติดตาม</span>
+      <button class="filter-btn" onclick="toggleAlertSection()" id="alert-toggle-btn">ซ่อน</button>
+    </div>
+    <div class="stock-alert-grid" id="stock-alert-grid"></div>
   </div>
 
   <!-- Calendar -->
@@ -2556,7 +2556,6 @@ function sortProducts(list) {
 
 function renderProductTable() {
   renderProductSummary();
-  renderStockAlerts();
 
   const q = document.getElementById('prod-search').value.trim().toLowerCase();
   let list = products.filter(p =>
@@ -2977,6 +2976,7 @@ function renderDayDetail(key) {
 }
 
 function renderReport() {
+  renderStockAlerts();
   const dayMap = getSalesByDay(sales);
 
   // Month stats
@@ -3064,12 +3064,20 @@ const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
   {
+    id: 14,
+    title: 'ย้ายสินค้าต้องติดตามไปหน้ารายงาน',
+    type: 'update',
+    date: '2026-06-17',
+    detail: 'ย้ายช่อง "⚠️ สินค้าต้องติดตาม" (สินค้าใกล้หมดและหมดสต็อก) จากหน้าจัดการสินค้าไปแสดงในหน้ารายงานแทน\n- อยู่ใต้การ์ดสรุปยอดขาย เหนือปฏิทิน\n- กดที่การ์ดสินค้าเพื่อแก้ไขสต็อกได้เหมือนเดิม\n- หน้าจัดการสินค้าเหลือเฉพาะตารางจัดการ ไม่รกตา',
+    order: 0,
+  },
+  {
     id: 13,
     title: 'แก้เวลาในบันทึกอัปเดตให้ตรงกับเวลาจริง',
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ระบบเวลาใน changelog ที่แสดง 12:0X ทุกรายการ\n- เปลี่ยนจาก timestamp ปลอม (เที่ยงวัน+offset) เป็นเวลาจริงตอน seed เข้า Firebase\n- เพิ่ม migration แก้ไข entries เก่าที่เวลาผิดใน Firebase อัตโนมัติ\n- รายการใหม่ที่สร้างจากปุ่ม "เพิ่มบันทึก" ใช้เวลาจริงอยู่แล้ว',
-    order: 0,
+    order: 1,
   },
   {
     id: 12,
@@ -3077,7 +3085,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ใบเสร็จแสดงรายละเอียดเพิ่มเติมของสินค้าทุกรายการ\n- แสดงยี่ห้อ/แบรนด์ และขนาด/น้ำหนักใต้ชื่อสินค้า\n- แสดงเลขบาร์โค้ด\n- แสดงหน่วยนับ (ขวด, ซอง, แพ็ค ฯลฯ) ต่อท้ายจำนวน\n- แสดงเลขบิลและจำนวนรายการรวมในใบเสร็จพิมพ์\n- อัปเดตทั้ง 3 จุด: modal ชำระเงิน, modal สำเร็จ, และหน้าพิมพ์ใบเสร็จ',
-    order: 1,
+    order: 2,
   },
   {
     id: 11,
@@ -3085,7 +3093,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มระบบแจ้งเตือนเมื่อมีการอัปเดตระบบใหม่\n- แสดงจุดแจ้งเตือนสีแดงบนแท็บ "อัปเดต" เมื่อมีรายการใหม่ที่ยังไม่ได้อ่าน\n- แสดง popup แจ้งเตือนอัตโนมัติพร้อมสรุปรายการอัปเดตใหม่\n- จำสถานะการอ่านใน localStorage ข้ามเซสชันได้\n- กดดูรายละเอียดจะพาไปหน้าอัปเดตโดยตรง\n- รองรับทั้ง Firebase real-time และ localStorage fallback',
-    order: 2,
+    order: 3,
   },
   {
     id: 10,
@@ -3093,7 +3101,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มบอทลอยอยู่มุมขวาล่าง กดปุ่ม 🤖 เพื่อเปิด\nถามได้เลยว่า:\n• ยอดขาย/กำไร วันนี้ เดือนนี้ ทั้งหมด\n• สินค้าใกล้หมด/หมดสต็อก\n• สต็อกสินค้าชิ้นนั้นๆ\n• สินค้าขายดีสุด / กำไรดีสุด\n• ราคาสินค้า\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด\nบอทดึงข้อมูลจริงจาก Firebase แบบ real-time',
-    order: 3,
+    order: 4,
   },
   {
     id: 9,
@@ -3101,7 +3109,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ปรับหน้าตาให้ใช้งานบนสมาร์ทโฟนได้เต็มรูปแบบ\n- เพิ่ม Bottom Navigation Bar แทน top tabs บนมือถือ\n- ตารางสินค้าเปลี่ยนเป็น card list อ่านง่ายขึ้น\n- Modal เปิดจากด้านล่างแบบ bottom sheet\n- ปุ่มและ touch target ใหญ่ขึ้นเหมาะกับนิ้วมือ\n- input font size 16px ป้องกัน iOS zoom อัตโนมัติ\n- ปฏิทินและการ์ดต่างๆ ปรับขนาดให้พอดีหน้าจอเล็ก',
-    order: 4,
+    order: 5,
   },
   {
     id: 8,
@@ -3109,7 +3117,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ 2 จุด\n- บันทึกอัปเดตเดิมแสดงเวลา 07:00 เพราะ timestamp เป็น UTC+0 แก้โดยใช้เวลาเครื่อง (local time) แทน\n- สินค้าที่ไม่มีบาร์โค้ดจะได้รับ EAN-13 อัตโนมัติเมื่อระบบตรวจพบ',
-    order: 5,
+    order: 6,
   },
   {
     id: 7,
@@ -3117,7 +3125,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่ม 2 ฟีเจอร์ใหม่\n- บันทึกอัปเดตแสดงวันที่และเวลาแบบเต็ม (วัน/เดือน/ปี ชั่วโมง:นาที)\n- เพิ่มสินค้าใหม่จะสร้างเลขบาร์โค้ด 13 หลักให้อัตโนมัติ (EAN-13 format ขึ้นต้นด้วย 999) แก้ไขเองได้หากต้องการ',
-    order: 6,
+    order: 7,
   },
   {
     id: 6,
@@ -3125,7 +3133,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ออกแบบหน้าจัดการสินค้าใหม่ทั้งหมด\n- เพิ่มแถบสรุป: สินค้าทั้งหมด / ใกล้หมด / หมดสต็อก / ปกติ\n- เพิ่มช่อง "⚠️ สินค้าต้องติดตาม" แสดงเฉพาะสินค้าใกล้หมดและหมดสต็อก กดเพื่อแก้ไขได้เลย\n- เพิ่มตัวเลือกเรียงสินค้า: ชื่อ / หมวดหมู่ / สต็อก / ราคา\n- ตารางสินค้าแสดง % กำไรต่อชิ้นและบาร์โค้ดในบรรทัดเดียวกัน\n- เมื่อเรียงตามหมวดหมู่จะมีหัวกลุ่มคั่นแต่ละหมวด',
-    order: 7,
+    order: 8,
   },
   {
     id: 1,
@@ -3133,7 +3141,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มแท็บ "📝 อัปเดต" สำหรับบันทึกการแก้ไขและฟีเจอร์ใหม่\n- เพิ่ม/แก้ไข/ลบบันทึกได้\n- เลือกประเภท: แก้ไขปัญหา / เพิ่มฟีเจอร์ / อัปเดต / หมายเหตุ\n- Sync real-time ผ่าน Firebase ทุกเครื่องเห็นพร้อมกัน',
-    order: 8,
+    order: 9,
   },
   {
     id: 2,
@@ -3141,7 +3149,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'ลบ toast "เชื่อมต่อ Firebase แล้ว" ที่ขึ้นทุกครั้งเมื่อเปิดเว็บ เพราะบังหน้าจอโดยไม่จำเป็น',
-    order: 9,
+    order: 10,
   },
   {
     id: 3,
@@ -3149,7 +3157,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ไข toast notification ให้แสดงผล 4 วินาทีแล้วค่อยๆ จางหายไปแทนที่จะค้างอยู่บนหน้าจอตลอด',
-    order: 10,
+    order: 11,
   },
   {
     id: 4,
@@ -3157,7 +3165,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนวิธีเก็บข้อมูลสินค้าใน Firebase จาก array → object keyed by ID\n- เดิม: db.ref("products").set(array) ทำให้เครื่อง A ทับข้อมูลเครื่อง B\n- ใหม่: db.ref("products/ID").set(p) อัปเดตเฉพาะสินค้าที่แก้ไข ไม่กระทบเครื่องอื่น\n- ทุกเครื่องรับข้อมูลอัปเดต real-time อัตโนมัติผ่าน Firebase listener',
-    order: 11,
+    order: 12,
   },
   {
     id: 5,
@@ -3165,7 +3173,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนการหักสต็อกไปใช้ Firebase Transaction แทนการแก้ค่าในหน่วยความจำ\n- เดิม: ลดค่า stock ในตัวแปร → save ทีหลัง (เกิด race condition ถ้า Firebase listener ยิงก่อน)\n- ใหม่: db.ref("products/ID/stock").transaction() อัปเดต atomic ทันที ไม่มี race condition\n- รองรับการขายพร้อมกัน 2 เครื่องได้อย่างถูกต้อง',
-    order: 12,
+    order: 13,
   },
 ];
 
