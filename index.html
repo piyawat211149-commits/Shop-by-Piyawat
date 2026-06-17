@@ -2239,7 +2239,7 @@ function addToCart(id) {
     if(item.qty >= p.stock) { showToast('สินค้าในสต็อกไม่พอ','error'); return; }
     item.qty++;
   } else {
-    cart.push({id, name:p.name, price:p.price, cost:p.cost, qty:1});
+    cart.push({id, name:p.name, price:p.price, cost:p.cost, qty:1, brand:p.brand||'', size:p.size||'', barcode:p.barcode||'', unit:p.unit||'ชิ้น', emoji:p.emoji||''});
   }
   renderCart();
   updateCartDrawer();
@@ -2303,6 +2303,28 @@ function renderCart() {
 // ══════════════════════════════════════════
 //  PAYMENT
 // ══════════════════════════════════════════
+function receiptItemDetail(i) {
+  const parts = [i.brand, i.size].filter(Boolean);
+  const detail = parts.length ? parts.join(' · ') : '';
+  const unitLabel = i.unit && i.unit !== 'ชิ้น' ? ` ${i.unit}` : '';
+  return { detail, unitLabel };
+}
+
+function receiptItemHtml(i) {
+  const { detail, unitLabel } = receiptItemDetail(i);
+  let h = `<div style="margin-bottom:4px;">
+    <div class="receipt-row"><span>${i.name} x${i.qty}${unitLabel}</span><span>฿${(i.price*i.qty).toFixed(2)}</span></div>`;
+  if (detail || i.barcode) {
+    h += `<div style="font-size:10px;color:#999;padding-left:2px;">`;
+    if (detail) h += detail;
+    if (detail && i.barcode) h += ' · ';
+    if (i.barcode) h += i.barcode;
+    h += `</div>`;
+  }
+  h += `</div>`;
+  return h;
+}
+
 function openPayModal() {
   if(!cart.length) return;
   const total = cart.reduce((s,i)=>s+i.price*i.qty, 0);
@@ -2312,9 +2334,7 @@ function openPayModal() {
     <div style="font-size:11px;color:#888">${now.toLocaleString('th-TH')}</div>
   </div>
   <div class="receipt-divider"></div>`;
-  cart.forEach(i => {
-    html += `<div class="receipt-row"><span>${i.name} x${i.qty}</span><span>฿${(i.price*i.qty).toFixed(2)}</span></div>`;
-  });
+  cart.forEach(i => { html += receiptItemHtml(i); });
   html += `<div class="receipt-divider"></div>
   <div class="receipt-total-row"><span>รวม</span><span>฿${total.toFixed(2)}</span></div>`;
   document.getElementById('pay-receipt').innerHTML = html;
@@ -2382,9 +2402,7 @@ async function confirmPayment() {
     <div style="font-size:11px;color:#888">${now.toLocaleString('th-TH')}</div>
   </div>
   <div class="receipt-divider"></div>`;
-  cart.forEach(i => {
-    rHtml += `<div class="receipt-row"><span>${i.name} x${i.qty}</span><span>฿${(i.price*i.qty).toFixed(2)}</span></div>`;
-  });
+  cart.forEach(i => { rHtml += receiptItemHtml(i); });
   rHtml += `<div class="receipt-divider"></div>
   <div class="receipt-total-row"><span>รวม</span><span>฿${total.toFixed(2)}</span></div>`;
   if(payMethod==='cash') {
@@ -2406,25 +2424,40 @@ async function confirmPayment() {
 function closeSuccessModal() { document.getElementById('success-modal').classList.remove('open'); }
 
 function printReceipt() {
-  const w = window.open('','_blank','width=320,height=500');
+  const w = window.open('','_blank','width=360,height=600');
   w.document.write(`<html><head><title>ใบเสร็จ</title>
-    <style>body{font-family:monospace;font-size:13px;padding:20px;max-width:300px;margin:0 auto;}
+    <style>body{font-family:monospace;font-size:13px;padding:20px;max-width:320px;margin:0 auto;}
     .r{display:flex;justify-content:space-between;margin:3px 0;}
     .t{display:flex;justify-content:space-between;font-weight:bold;font-size:15px;margin-top:6px;}
+    .d{font-size:10px;color:#888;margin:-1px 0 4px 2px;}
     hr{border:1px dashed #ccc;margin:6px 0;} .c{text-align:center;margin-bottom:8px;}
+    .info{font-size:10px;color:#666;margin-top:4px;text-align:center;}
     </style></head><body>
     <div class="c"><b>🛒 ร้านของชำ</b><br><small>${new Date().toLocaleString('th-TH')}</small></div>
     <hr>`);
   const sale = sales[sales.length-1];
   if(sale) {
     sale.items.forEach(i=>{
-      w.document.write(`<div class="r"><span>${i.name} x${i.qty}</span><span>฿${(i.price*i.qty).toFixed(2)}</span></div>`);
+      const parts = [i.brand, i.size].filter(Boolean);
+      const detail = parts.length ? parts.join(' · ') : '';
+      const unitLabel = i.unit && i.unit !== 'ชิ้น' ? ` ${i.unit}` : '';
+      w.document.write(`<div class="r"><span>${i.name} x${i.qty}${unitLabel}</span><span>฿${(i.price*i.qty).toFixed(2)}</span></div>`);
+      if (detail || i.barcode) {
+        let sub = '';
+        if (detail) sub += detail;
+        if (detail && i.barcode) sub += ' · ';
+        if (i.barcode) sub += i.barcode;
+        w.document.write(`<div class="d">${sub}</div>`);
+      }
     });
     w.document.write(`<hr><div class="t"><span>รวม</span><span>฿${sale.total.toFixed(2)}</span></div>`);
     if(sale.method==='cash') {
       w.document.write(`<div class="r"><span>รับมา</span><span>฿${sale.received.toFixed(2)}</span></div>
       <div class="r"><span>ทอน</span><span>฿${sale.change.toFixed(2)}</span></div>`);
+    } else {
+      w.document.write(`<div class="r"><span>ชำระ</span><span>QR/โอน</span></div>`);
     }
+    w.document.write(`<div class="info">บิล #${sale.id} | ${sale.items.reduce((s,x)=>s+x.qty,0)} รายการ</div>`);
   }
   w.document.write(`<hr><div class="c" style="margin-top:10px">ขอบคุณที่ใช้บริการ 🙏</div></body></html>`);
   w.document.close();
@@ -3037,6 +3070,14 @@ function dateStrToTs(dateStr, offsetMinutes = 0) {
 }
 
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 12,
+    title: 'ใบเสร็จแสดงรายละเอียดสินค้าเพิ่ม',
+    type: 'feature',
+    date: '2026-06-17',
+    detail: 'ใบเสร็จแสดงรายละเอียดเพิ่มเติมของสินค้าทุกรายการ\n- แสดงยี่ห้อ/แบรนด์ และขนาด/น้ำหนักใต้ชื่อสินค้า\n- แสดงเลขบาร์โค้ด\n- แสดงหน่วยนับ (ขวด, ซอง, แพ็ค ฯลฯ) ต่อท้ายจำนวน\n- แสดงเลขบิลและจำนวนรายการรวมในใบเสร็จพิมพ์\n- อัปเดตทั้ง 3 จุด: modal ชำระเงิน, modal สำเร็จ, และหน้าพิมพ์ใบเสร็จ',
+    get createdAt() { return dateStrToTs('2026-06-17', 11); },
+  },
   {
     id: 11,
     title: 'เพิ่มระบบแจ้งเตือนอัปเดตใหม่',
