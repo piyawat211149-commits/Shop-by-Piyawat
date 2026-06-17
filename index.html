@@ -794,42 +794,15 @@
     position: relative;
     overflow: hidden;
   }
-  #scanner-reader { width: 100%; height: 100%; }
-  #scanner-reader video { object-fit: cover !important; border-radius: 12px; }
-  #scanner-reader img[alt="Info icon"] { display: none !important; }
+  #scanner-reader { width: 100%; height: 100%; position: relative; }
+  #scanner-reader video { object-fit: cover !important; border-radius: 12px; width: 100% !important; }
+  #scanner-reader img { display: none !important; }
   #html5-qrcode-anchor-scan-type-change { display: none !important; }
   #html5-qrcode-button-camera-permission,
   #html5-qrcode-button-camera-start,
   #html5-qrcode-button-camera-stop { display: none !important; }
-  .scanner-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 5;
-  }
-  .scanner-frame {
-    width: 70%;
-    height: 50%;
-    border: 3px solid rgba(255,255,255,0.6);
-    border-radius: 14px;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.3);
-    position: relative;
-  }
-  .scanner-frame::before {
-    content: '';
-    position: absolute;
-    left: 10%;
-    right: 10%;
-    height: 2px;
-    background: var(--accent);
-    top: 50%;
-    animation: scanline 2s ease-in-out infinite;
-    box-shadow: 0 0 8px var(--accent);
-  }
-  @keyframes scanline { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
+  #scanner-reader > div:last-child { display: none !important; }
+  .scanner-overlay { display: none; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
   .scanner-status {
     font-size: 13px;
@@ -2204,9 +2177,6 @@
     <div id="scanner-camera-panel">
       <div class="scanner-box" id="scanner-video-box">
         <div id="scanner-reader"></div>
-        <div class="scanner-overlay">
-          <div class="scanner-frame"></div>
-        </div>
       </div>
       <div class="scanner-status" id="scanner-status">กำลังเปิดกล้อง...</div>
       <div id="scanner-result" class="scanner-result" style="display:none;"></div>
@@ -2771,18 +2741,22 @@ function printReceipt() {
 // ══════════════════════════════════════════
 let html5Scanner = null;
 let scannerCooldown = false;
+let scannerRunning = false;
 
 function openScanner() {
   document.getElementById('scanner-modal').classList.add('open');
+  document.getElementById('scanner-result').style.display = 'none';
+  document.getElementById('scanner-status').textContent = '';
+  document.getElementById('scanner-status').className = 'scanner-status';
   switchScannerTab('camera');
 }
 
 function closeScanner() {
-  stopCameraScanner();
   document.getElementById('scanner-modal').classList.remove('open');
   document.getElementById('scanner-result').style.display = 'none';
   document.getElementById('scanner-status').textContent = '';
   document.getElementById('scanner-status').className = 'scanner-status';
+  stopCameraScanner();
 }
 
 function switchScannerTab(tab) {
@@ -2793,7 +2767,7 @@ function switchScannerTab(tab) {
   document.getElementById('scanner-result').style.display = 'none';
 
   if (tab === 'camera') {
-    startCameraScanner();
+    setTimeout(() => startCameraScanner(), 300);
   } else {
     stopCameraScanner();
     setTimeout(() => document.getElementById('barcode-input').focus(), 100);
@@ -2801,55 +2775,68 @@ function switchScannerTab(tab) {
 }
 
 function startCameraScanner() {
+  if (scannerRunning) return;
   const statusEl = document.getElementById('scanner-status');
+  const readerEl = document.getElementById('scanner-reader');
   statusEl.textContent = 'กำลังเปิดกล้อง...';
   statusEl.className = 'scanner-status';
 
-  if (html5Scanner) { stopCameraScanner(); }
+  readerEl.innerHTML = '';
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    statusEl.innerHTML = '⚠️ เบราว์เซอร์ไม่รองรับกล้อง ลองใช้แท็บ "พิมพ์เอง"';
+    statusEl.className = 'scanner-status error';
+    return;
+  }
 
   try {
     html5Scanner = new Html5Qrcode('scanner-reader');
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 150 },
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.QR_CODE
+      ]
+    };
     html5Scanner.start(
       { facingMode: 'environment' },
-      {
-        fps: 10,
-        qrbox: function(vw, vh) {
-          const s = Math.min(vw, vh);
-          return { width: Math.floor(s * 0.7), height: Math.floor(s * 0.45) };
-        },
-        aspectRatio: 1.0,
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.QR_CODE
-        ]
-      },
+      config,
       onScanSuccess,
       () => {}
     ).then(() => {
+      scannerRunning = true;
       statusEl.textContent = 'เล็งกล้องไปที่บาร์โค้ดสินค้า';
       statusEl.className = 'scanner-status';
     }).catch(err => {
       console.warn('Camera error:', err);
-      statusEl.innerHTML = '⚠️ เปิดกล้องไม่ได้ ลองใช้แท็บ "พิมพ์เอง"';
+      statusEl.innerHTML = '⚠️ เปิดกล้องไม่ได้ — ลองใช้แท็บ "พิมพ์เอง"';
       statusEl.className = 'scanner-status error';
+      html5Scanner = null;
     });
   } catch(e) {
+    console.warn('Scanner init error:', e);
     statusEl.innerHTML = '⚠️ เบราว์เซอร์ไม่รองรับกล้อง';
     statusEl.className = 'scanner-status error';
+    html5Scanner = null;
   }
 }
 
 function stopCameraScanner() {
-  if (html5Scanner) {
-    html5Scanner.stop().catch(() => {});
-    html5Scanner.clear();
-    html5Scanner = null;
-  }
+  if (!html5Scanner) { scannerRunning = false; return; }
+  const scanner = html5Scanner;
+  html5Scanner = null;
+  scannerRunning = false;
+  scanner.stop().then(() => {
+    try { scanner.clear(); } catch(e) {}
+  }).catch(() => {
+    try { scanner.clear(); } catch(e) {}
+  });
 }
 
 function onScanSuccess(code) {
