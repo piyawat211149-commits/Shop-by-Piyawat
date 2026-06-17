@@ -758,29 +758,107 @@
   .log-total { font-family: var(--mono); font-weight: 700; color: var(--primary); font-size: 15px; }
 
   /* ── BARCODE SCANNER MODAL ── */
-  .scanner-modal { max-width: 360px; text-align: center; }
+  .scanner-modal { max-width: 400px; text-align: center; }
+  .scanner-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .scanner-tab {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 8px 12px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    color: var(--text-3);
+    transition: all 0.2s;
+  }
+  .scanner-tab.active { background: var(--primary); color: #fff; }
   .scanner-box {
     background: #000;
-    border-radius: 10px;
-    height: 200px;
+    border-radius: 12px;
+    height: 280px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: rgba(255,255,255,0.4);
     font-size: 48px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     position: relative;
     overflow: hidden;
   }
-  .scanner-line {
+  #scanner-reader { width: 100%; height: 100%; }
+  #scanner-reader video { object-fit: cover !important; border-radius: 12px; }
+  #scanner-reader img[alt="Info icon"] { display: none !important; }
+  #html5-qrcode-anchor-scan-type-change { display: none !important; }
+  #html5-qrcode-button-camera-permission,
+  #html5-qrcode-button-camera-start,
+  #html5-qrcode-button-camera-stop { display: none !important; }
+  .scanner-overlay {
     position: absolute;
-    width: 80%;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .scanner-frame {
+    width: 70%;
+    height: 50%;
+    border: 3px solid rgba(255,255,255,0.6);
+    border-radius: 14px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .scanner-frame::before {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
     height: 2px;
     background: var(--accent);
-    animation: scan 1.5s ease-in-out infinite;
+    top: 50%;
+    animation: scanline 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent);
   }
-  @keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
+  @keyframes scanline { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .scanner-status {
+    font-size: 13px;
+    color: var(--text-3);
+    margin-bottom: 8px;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .scanner-status.success { color: var(--primary); font-weight: 700; }
+  .scanner-status.error { color: var(--danger); }
+  .scanner-result {
+    background: var(--primary-pale);
+    border: 2px solid var(--primary);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+  }
+  .scanner-result .sr-emoji { font-size: 28px; }
+  .scanner-result .sr-info { flex: 1; }
+  .scanner-result .sr-name { font-weight: 700; font-size: 14px; }
+  .scanner-result .sr-detail { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .scanner-result .sr-price { font-family: var(--mono); font-weight: 700; color: var(--primary); font-size: 16px; }
   .barcode-manual-input {
     display: flex;
     gap: 10px;
@@ -1626,6 +1704,8 @@
       margin: 0 auto 16px;
     }
     .scanner-modal { max-width: 100%; }
+    .scanner-box { height: 240px; }
+    .scanner-tab { padding: 10px 8px; font-size: 13px; }
 
     /* ── Pay button bigger ── */
     .pay-btn { padding: 16px; font-size: 18px; }
@@ -2117,14 +2197,29 @@
 <div class="modal-overlay" id="scanner-modal">
   <div class="modal scanner-modal">
     <div class="modal-title">📷 สแกนบาร์โค้ด</div>
-    <div class="scanner-box">
-      <div class="scanner-line"></div>
-      <span style="z-index:2">📦</span>
+    <div class="scanner-tabs">
+      <button class="scanner-tab active" id="tab-camera" onclick="switchScannerTab('camera')">📷 กล้อง</button>
+      <button class="scanner-tab" id="tab-manual" onclick="switchScannerTab('manual')">⌨️ พิมพ์เอง</button>
     </div>
-    <p style="font-size:13px;color:var(--text-3);margin-bottom:12px;">ใส่บาร์โค้ดด้วยตนเองได้เลย</p>
-    <div class="barcode-manual-input">
-      <input class="form-input" type="text" id="barcode-input" placeholder="พิมพ์บาร์โค้ด..." style="flex:1">
-      <button class="btn-confirm" onclick="searchBarcode()" style="flex:none;padding:10px 18px;">ค้นหา</button>
+    <div id="scanner-camera-panel">
+      <div class="scanner-box" id="scanner-video-box">
+        <div id="scanner-reader"></div>
+        <div class="scanner-overlay">
+          <div class="scanner-frame"></div>
+        </div>
+      </div>
+      <div class="scanner-status" id="scanner-status">กำลังเปิดกล้อง...</div>
+      <div id="scanner-result" class="scanner-result" style="display:none;"></div>
+    </div>
+    <div id="scanner-manual-panel" style="display:none;">
+      <div class="scanner-box" style="height:120px;">
+        <span style="font-size:48px;">⌨️</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-3);margin-bottom:12px;">พิมพ์หรือวางเลขบาร์โค้ด</p>
+      <div class="barcode-manual-input">
+        <input class="form-input" type="text" id="barcode-input" placeholder="พิมพ์บาร์โค้ด..." style="flex:1" inputmode="numeric">
+        <button class="btn-confirm" onclick="searchBarcode()" style="flex:none;padding:10px 18px;">ค้นหา</button>
+      </div>
     </div>
     <div style="margin-top:16px;">
       <button class="btn-cancel" style="width:100%" onclick="closeScanner()">ปิด</button>
@@ -2193,6 +2288,7 @@
 <!-- Firebase CDN (compat version — ใช้ได้กับ file://) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
 // ══════════════════════════════════════════
@@ -2671,22 +2767,143 @@ function printReceipt() {
 }
 
 // ══════════════════════════════════════════
-//  BARCODE SCANNER
+//  BARCODE SCANNER (Camera + Manual)
 // ══════════════════════════════════════════
-function openScanner() { document.getElementById('scanner-modal').classList.add('open'); document.getElementById('barcode-input').focus(); }
-function closeScanner() { document.getElementById('scanner-modal').classList.remove('open'); }
+let html5Scanner = null;
+let scannerCooldown = false;
+
+function openScanner() {
+  document.getElementById('scanner-modal').classList.add('open');
+  switchScannerTab('camera');
+}
+
+function closeScanner() {
+  stopCameraScanner();
+  document.getElementById('scanner-modal').classList.remove('open');
+  document.getElementById('scanner-result').style.display = 'none';
+  document.getElementById('scanner-status').textContent = '';
+  document.getElementById('scanner-status').className = 'scanner-status';
+}
+
+function switchScannerTab(tab) {
+  document.getElementById('tab-camera').classList.toggle('active', tab === 'camera');
+  document.getElementById('tab-manual').classList.toggle('active', tab === 'manual');
+  document.getElementById('scanner-camera-panel').style.display = tab === 'camera' ? '' : 'none';
+  document.getElementById('scanner-manual-panel').style.display = tab === 'manual' ? '' : 'none';
+  document.getElementById('scanner-result').style.display = 'none';
+
+  if (tab === 'camera') {
+    startCameraScanner();
+  } else {
+    stopCameraScanner();
+    setTimeout(() => document.getElementById('barcode-input').focus(), 100);
+  }
+}
+
+function startCameraScanner() {
+  const statusEl = document.getElementById('scanner-status');
+  statusEl.textContent = 'กำลังเปิดกล้อง...';
+  statusEl.className = 'scanner-status';
+
+  if (html5Scanner) { stopCameraScanner(); }
+
+  try {
+    html5Scanner = new Html5Qrcode('scanner-reader');
+    html5Scanner.start(
+      { facingMode: 'environment' },
+      {
+        fps: 10,
+        qrbox: function(vw, vh) {
+          const s = Math.min(vw, vh);
+          return { width: Math.floor(s * 0.7), height: Math.floor(s * 0.45) };
+        },
+        aspectRatio: 1.0,
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.QR_CODE
+        ]
+      },
+      onScanSuccess,
+      () => {}
+    ).then(() => {
+      statusEl.textContent = 'เล็งกล้องไปที่บาร์โค้ดสินค้า';
+      statusEl.className = 'scanner-status';
+    }).catch(err => {
+      console.warn('Camera error:', err);
+      statusEl.innerHTML = '⚠️ เปิดกล้องไม่ได้ ลองใช้แท็บ "พิมพ์เอง"';
+      statusEl.className = 'scanner-status error';
+    });
+  } catch(e) {
+    statusEl.innerHTML = '⚠️ เบราว์เซอร์ไม่รองรับกล้อง';
+    statusEl.className = 'scanner-status error';
+  }
+}
+
+function stopCameraScanner() {
+  if (html5Scanner) {
+    html5Scanner.stop().catch(() => {});
+    html5Scanner.clear();
+    html5Scanner = null;
+  }
+}
+
+function onScanSuccess(code) {
+  if (scannerCooldown) return;
+  scannerCooldown = true;
+  setTimeout(() => { scannerCooldown = false; }, 2000);
+
+  const statusEl = document.getElementById('scanner-status');
+  const resultEl = document.getElementById('scanner-result');
+  const p = products.find(x => x.barcode === code);
+
+  if (p) {
+    statusEl.innerHTML = '✅ พบสินค้า!';
+    statusEl.className = 'scanner-status success';
+    resultEl.innerHTML = `
+      <span class="sr-emoji">${p.emoji || '📦'}</span>
+      <div class="sr-info">
+        <div class="sr-name">${p.name}</div>
+        <div class="sr-detail">${p.brand||''} ${p.size||''} · สต็อก: ${p.stock} ${p.unit||'ชิ้น'}</div>
+      </div>
+      <div class="sr-price">฿${p.price}</div>
+    `;
+    resultEl.style.display = 'flex';
+    resultEl.style.borderColor = 'var(--primary)';
+    resultEl.style.background = 'var(--primary-pale)';
+    addToCart(p.id);
+    showToast(`เพิ่ม ${p.name} ลงตะกร้า`, 'success');
+
+    if (navigator.vibrate) navigator.vibrate(100);
+  } else {
+    statusEl.innerHTML = `❌ ไม่พบสินค้าบาร์โค้ด: ${code}`;
+    statusEl.className = 'scanner-status error';
+    resultEl.innerHTML = `
+      <span class="sr-emoji">❓</span>
+      <div class="sr-info">
+        <div class="sr-name">ไม่พบสินค้า</div>
+        <div class="sr-detail">บาร์โค้ด: ${code}</div>
+      </div>
+    `;
+    resultEl.style.display = 'flex';
+    resultEl.style.borderColor = 'var(--danger)';
+    resultEl.style.background = 'var(--danger-pale)';
+
+    if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+  }
+}
+
 function searchBarcode() {
   const code = document.getElementById('barcode-input').value.trim();
   if(!code) return;
-  const p = products.find(x=>x.barcode===code);
-  if(p) {
-    closeScanner();
-    addToCart(p.id);
-    document.getElementById('barcode-input').value='';
-  } else {
-    showToast('ไม่พบสินค้าบาร์โค้ดนี้', 'error');
-  }
+  onScanSuccess(code);
+  document.getElementById('barcode-input').value='';
 }
+
 document.getElementById('barcode-input').addEventListener('keydown', e => { if(e.key==='Enter') searchBarcode(); });
 
 // ══════════════════════════════════════════
@@ -3303,12 +3520,20 @@ const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
   {
+    id: 15,
+    title: 'สแกนบาร์โค้ดด้วยกล้องได้แล้ว',
+    type: 'feature',
+    date: '2026-06-17',
+    detail: 'เพิ่มระบบสแกนบาร์โค้ดผ่านกล้องมือถือ/เว็บแคม\n- กดปุ่ม 📷 ที่หน้าขายสินค้า เปิดกล้องสแกนได้เลย\n- รองรับบาร์โค้ด EAN-13, EAN-8, UPC-A, Code-128, QR Code\n- สแกนแล้วเพิ่มสินค้าเข้าตะกร้าอัตโนมัติ\n- มี vibrate feedback เมื่อสแกนสำเร็จ\n- ยังพิมพ์บาร์โค้ดเองได้ในแท็บ "พิมพ์เอง"',
+    order: 0,
+  },
+  {
     id: 14,
     title: 'ย้ายสินค้าต้องติดตามไปหน้ารายงาน',
     type: 'update',
     date: '2026-06-17',
     detail: 'ย้ายช่อง "⚠️ สินค้าต้องติดตาม" (สินค้าใกล้หมดและหมดสต็อก) จากหน้าจัดการสินค้าไปแสดงในหน้ารายงานแทน\n- อยู่ใต้การ์ดสรุปยอดขาย เหนือปฏิทิน\n- กดที่การ์ดสินค้าเพื่อแก้ไขสต็อกได้เหมือนเดิม\n- หน้าจัดการสินค้าเหลือเฉพาะตารางจัดการ ไม่รกตา',
-    order: 0,
+    order: 1,
   },
   {
     id: 13,
@@ -3316,7 +3541,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ระบบเวลาใน changelog ที่แสดง 12:0X ทุกรายการ\n- เปลี่ยนจาก timestamp ปลอม (เที่ยงวัน+offset) เป็นเวลาจริงตอน seed เข้า Firebase\n- เพิ่ม migration แก้ไข entries เก่าที่เวลาผิดใน Firebase อัตโนมัติ\n- รายการใหม่ที่สร้างจากปุ่ม "เพิ่มบันทึก" ใช้เวลาจริงอยู่แล้ว',
-    order: 1,
+    order: 2,
   },
   {
     id: 12,
@@ -3324,7 +3549,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ใบเสร็จแสดงรายละเอียดเพิ่มเติมของสินค้าทุกรายการ\n- แสดงยี่ห้อ/แบรนด์ และขนาด/น้ำหนักใต้ชื่อสินค้า\n- แสดงเลขบาร์โค้ด\n- แสดงหน่วยนับ (ขวด, ซอง, แพ็ค ฯลฯ) ต่อท้ายจำนวน\n- แสดงเลขบิลและจำนวนรายการรวมในใบเสร็จพิมพ์\n- อัปเดตทั้ง 3 จุด: modal ชำระเงิน, modal สำเร็จ, และหน้าพิมพ์ใบเสร็จ',
-    order: 2,
+    order: 3,
   },
   {
     id: 11,
@@ -3332,7 +3557,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มระบบแจ้งเตือนเมื่อมีการอัปเดตระบบใหม่\n- แสดงจุดแจ้งเตือนสีแดงบนแท็บ "อัปเดต" เมื่อมีรายการใหม่ที่ยังไม่ได้อ่าน\n- แสดง popup แจ้งเตือนอัตโนมัติพร้อมสรุปรายการอัปเดตใหม่\n- จำสถานะการอ่านใน localStorage ข้ามเซสชันได้\n- กดดูรายละเอียดจะพาไปหน้าอัปเดตโดยตรง\n- รองรับทั้ง Firebase real-time และ localStorage fallback',
-    order: 3,
+    order: 4,
   },
   {
     id: 10,
@@ -3340,7 +3565,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มบอทลอยอยู่มุมขวาล่าง กดปุ่ม 🤖 เพื่อเปิด\nถามได้เลยว่า:\n• ยอดขาย/กำไร วันนี้ เดือนนี้ ทั้งหมด\n• สินค้าใกล้หมด/หมดสต็อก\n• สต็อกสินค้าชิ้นนั้นๆ\n• สินค้าขายดีสุด / กำไรดีสุด\n• ราคาสินค้า\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด\nบอทดึงข้อมูลจริงจาก Firebase แบบ real-time',
-    order: 4,
+    order: 5,
   },
   {
     id: 9,
@@ -3348,7 +3573,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ปรับหน้าตาให้ใช้งานบนสมาร์ทโฟนได้เต็มรูปแบบ\n- เพิ่ม Bottom Navigation Bar แทน top tabs บนมือถือ\n- ตารางสินค้าเปลี่ยนเป็น card list อ่านง่ายขึ้น\n- Modal เปิดจากด้านล่างแบบ bottom sheet\n- ปุ่มและ touch target ใหญ่ขึ้นเหมาะกับนิ้วมือ\n- input font size 16px ป้องกัน iOS zoom อัตโนมัติ\n- ปฏิทินและการ์ดต่างๆ ปรับขนาดให้พอดีหน้าจอเล็ก',
-    order: 5,
+    order: 6,
   },
   {
     id: 8,
@@ -3356,7 +3581,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ 2 จุด\n- บันทึกอัปเดตเดิมแสดงเวลา 07:00 เพราะ timestamp เป็น UTC+0 แก้โดยใช้เวลาเครื่อง (local time) แทน\n- สินค้าที่ไม่มีบาร์โค้ดจะได้รับ EAN-13 อัตโนมัติเมื่อระบบตรวจพบ',
-    order: 6,
+    order: 7,
   },
   {
     id: 7,
@@ -3364,7 +3589,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่ม 2 ฟีเจอร์ใหม่\n- บันทึกอัปเดตแสดงวันที่และเวลาแบบเต็ม (วัน/เดือน/ปี ชั่วโมง:นาที)\n- เพิ่มสินค้าใหม่จะสร้างเลขบาร์โค้ด 13 หลักให้อัตโนมัติ (EAN-13 format ขึ้นต้นด้วย 999) แก้ไขเองได้หากต้องการ',
-    order: 7,
+    order: 8,
   },
   {
     id: 6,
@@ -3372,7 +3597,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ออกแบบหน้าจัดการสินค้าใหม่ทั้งหมด\n- เพิ่มแถบสรุป: สินค้าทั้งหมด / ใกล้หมด / หมดสต็อก / ปกติ\n- เพิ่มช่อง "⚠️ สินค้าต้องติดตาม" แสดงเฉพาะสินค้าใกล้หมดและหมดสต็อก กดเพื่อแก้ไขได้เลย\n- เพิ่มตัวเลือกเรียงสินค้า: ชื่อ / หมวดหมู่ / สต็อก / ราคา\n- ตารางสินค้าแสดง % กำไรต่อชิ้นและบาร์โค้ดในบรรทัดเดียวกัน\n- เมื่อเรียงตามหมวดหมู่จะมีหัวกลุ่มคั่นแต่ละหมวด',
-    order: 8,
+    order: 9,
   },
   {
     id: 1,
@@ -3380,7 +3605,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มแท็บ "📝 อัปเดต" สำหรับบันทึกการแก้ไขและฟีเจอร์ใหม่\n- เพิ่ม/แก้ไข/ลบบันทึกได้\n- เลือกประเภท: แก้ไขปัญหา / เพิ่มฟีเจอร์ / อัปเดต / หมายเหตุ\n- Sync real-time ผ่าน Firebase ทุกเครื่องเห็นพร้อมกัน',
-    order: 9,
+    order: 10,
   },
   {
     id: 2,
@@ -3388,7 +3613,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'ลบ toast "เชื่อมต่อ Firebase แล้ว" ที่ขึ้นทุกครั้งเมื่อเปิดเว็บ เพราะบังหน้าจอโดยไม่จำเป็น',
-    order: 10,
+    order: 11,
   },
   {
     id: 3,
@@ -3396,7 +3621,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ไข toast notification ให้แสดงผล 4 วินาทีแล้วค่อยๆ จางหายไปแทนที่จะค้างอยู่บนหน้าจอตลอด',
-    order: 11,
+    order: 12,
   },
   {
     id: 4,
@@ -3404,7 +3629,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนวิธีเก็บข้อมูลสินค้าใน Firebase จาก array → object keyed by ID\n- เดิม: db.ref("products").set(array) ทำให้เครื่อง A ทับข้อมูลเครื่อง B\n- ใหม่: db.ref("products/ID").set(p) อัปเดตเฉพาะสินค้าที่แก้ไข ไม่กระทบเครื่องอื่น\n- ทุกเครื่องรับข้อมูลอัปเดต real-time อัตโนมัติผ่าน Firebase listener',
-    order: 12,
+    order: 13,
   },
   {
     id: 5,
@@ -3412,7 +3637,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนการหักสต็อกไปใช้ Firebase Transaction แทนการแก้ค่าในหน่วยความจำ\n- เดิม: ลดค่า stock ในตัวแปร → save ทีหลัง (เกิด race condition ถ้า Firebase listener ยิงก่อน)\n- ใหม่: db.ref("products/ID/stock").transaction() อัปเดต atomic ทันที ไม่มี race condition\n- รองรับการขายพร้อมกัน 2 เครื่องได้อย่างถูกต้อง',
-    order: 13,
+    order: 14,
   },
 ];
 
