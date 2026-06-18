@@ -1631,20 +1631,32 @@
     .prod-summary-chip .chip-val { font-size: 16px; }
 
     /* ── Calendar ── */
-    .cal-cell { min-height: 52px; padding: 4px 2px; border-radius: 8px; }
+    .cal-cell { min-height: 48px; padding: 3px 2px; border-radius: 8px; gap: 1px; }
     .cal-cell:hover { transform: none; }
     .cal-day-num { font-size: 12px; }
     .cal-revenue { font-size: 9px; padding: 0 2px; }
-    .cal-profit { font-size: 8px; }
+    .cal-profit { display: none; }
     .cal-grid-head div { font-size: 11px; padding: 4px 0; }
+    .cal-grid { gap: 3px; }
     .cal-nav-btn { width: 32px; height: 32px; font-size: 14px; }
+    .report-section-header { padding: 12px 14px; font-size: 14px; }
 
     /* ── Report stat cards ── */
-    .report-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat-card { padding: 14px; border-radius: 12px; }
-    .stat-card .stat-icon { font-size: 22px; margin-bottom: 4px; }
-    .stat-value { font-size: 20px; }
-    .stat-label { font-size: 11px; margin-bottom: 4px; }
+    .report-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { padding: 12px; border-radius: 12px; }
+    .stat-card::before { height: 3px; }
+    .stat-card .stat-icon { font-size: 20px; margin-bottom: 4px; }
+    .stat-value { font-size: 18px; }
+    .stat-label { font-size: 10px; margin-bottom: 3px; }
+    .stat-sub { font-size: 11px; }
+
+    /* ── Stock alerts mobile ── */
+    .stock-alert-header { padding: 10px 12px; font-size: 13px; border-radius: 10px 10px 0 0; }
+    .stock-alert-grid { grid-template-columns: 1fr; gap: 6px; padding: 8px; border-radius: 0 0 10px 10px; }
+    .stock-alert-card { padding: 10px 12px; gap: 10px; border-radius: 8px; }
+    .stock-alert-card .ac-emoji { font-size: 18px; width: 34px; height: 34px; border-radius: 8px; }
+    .stock-alert-card .ac-name { font-size: 13px; }
+    .stock-alert-card .ac-stock { font-size: 11px; }
 
     /* ── Sales log mobile ── */
     .log-item { padding: 10px 12px; gap: 8px; }
@@ -1653,10 +1665,13 @@
     .log-desc { font-size: 13px; }
 
     /* ── Mini chart mobile ── */
-    .mini-chart { height: 110px; padding: 14px 10px 10px; gap: 1px; overflow-x: auto; }
-    .mini-chart-bar { max-width: 20px; border-radius: 4px 4px 1px 1px; }
-    .mini-chart-val { font-size: 7px; }
-    .mini-chart-day { font-size: 8px; }
+    .mini-chart-section { margin-bottom: 12px; }
+    .mini-chart-header { padding: 10px 14px; font-size: 14px; }
+    .mini-chart { height: 100px; padding: 12px 8px 8px; gap: 1px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+    .mini-chart-bar-wrap { min-width: 14px; flex-shrink: 0; }
+    .mini-chart-bar { max-width: 14px; border-radius: 3px 3px 1px 1px; }
+    .mini-chart-val { display: none; }
+    .mini-chart-day { font-size: 7px; }
 
     /* ── Modals full-width bottom-sheet style ── */
     .modal-overlay { align-items: flex-end; padding: 0; }
@@ -2215,7 +2230,7 @@
   </div>
 
   <!-- Month summary cards -->
-  <div class="report-grid" style="margin-bottom:20px;">
+  <div class="report-grid" style="margin-bottom:14px;">
     <div class="stat-card">
       <span class="stat-icon">💰</span>
       <div class="stat-label">ยอดขายเดือนนี้</div>
@@ -2251,7 +2266,7 @@
   </div>
 
   <!-- Stock alert section -->
-  <div id="stock-alert-section" style="display:none;margin-bottom:20px;">
+  <div id="stock-alert-section" style="display:none;margin-bottom:14px;">
     <div class="stock-alert-header">
       <span>⚠️ สินค้าต้องติดตาม</span>
       <button class="filter-btn" onclick="toggleAlertSection()" id="alert-toggle-btn">ซ่อน</button>
@@ -2260,7 +2275,7 @@
   </div>
 
   <!-- Calendar -->
-  <div class="report-section" style="margin-bottom:20px;">
+  <div class="report-section" style="margin-bottom:14px;">
     <div class="report-section-header">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:18px;">📅</span>
