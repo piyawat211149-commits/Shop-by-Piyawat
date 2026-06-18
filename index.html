@@ -1688,6 +1688,228 @@
     .cl-card { flex-wrap: wrap; }
     .cl-date { margin-left: 0; width: 100%; margin-top: 4px; }
   }
+
+  /* ── SYSTEM HEALTH MONITOR ── */
+  .health-fab {
+    position: fixed;
+    bottom: 90px;
+    left: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid #4CAF50;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    z-index: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    transition: all 0.3s;
+  }
+  .health-fab.warning { border-color: var(--accent); animation: healthPulse 2s infinite; }
+  .health-fab.critical { border-color: var(--danger); animation: healthPulse 1.5s infinite; }
+  .health-fab .health-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+  @keyframes healthPulse {
+    0%,100% { box-shadow: 0 3px 12px rgba(0,0,0,0.15); }
+    50% { box-shadow: 0 3px 20px rgba(192,57,43,0.35); }
+  }
+
+  .health-panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 900;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .health-panel-overlay.open { display: flex; }
+
+  .health-panel {
+    background: var(--bg);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .health-panel-header {
+    background: var(--surface);
+    padding: 18px 20px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .health-panel-title {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .health-status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .health-status-badge.ok { background: #e8f5e9; color: #2e7d32; }
+  .health-status-badge.warn { background: var(--accent-pale); color: #9a6600; }
+  .health-status-badge.crit { background: var(--danger-pale); color: var(--danger); }
+
+  .health-panel-body { padding: 16px; }
+
+  .health-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .health-summary-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .health-summary-card .hs-num {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .health-summary-card .hs-num.green { color: #4CAF50; }
+  .health-summary-card .hs-num.yellow { color: #F9A825; }
+  .health-summary-card .hs-num.red { color: var(--danger); }
+  .health-summary-card .hs-label {
+    font-size: 11px;
+    color: var(--text-3);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .health-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 16px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .health-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--border);
+  }
+  .health-item.critical { border-left-color: var(--danger); }
+  .health-item.warning { border-left-color: var(--accent); }
+  .health-item.ok { border-left-color: #4CAF50; }
+  .health-item.suggestion { border-left-color: #3b82f6; }
+
+  .health-item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .health-item-icon { font-size: 16px; }
+  .health-item-title { font-weight: 700; font-size: 14px; flex: 1; }
+  .health-item-severity {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+  .health-item.critical .health-item-severity { background: var(--danger-pale); color: var(--danger); }
+  .health-item.warning .health-item-severity { background: var(--accent-pale); color: #9a6600; }
+  .health-item.suggestion .health-item-severity { background: #e3f2fd; color: #1565c0; }
+
+  .health-item-desc {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .health-item-detail {
+    font-size: 12px;
+    color: var(--text-3);
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    max-height: 100px;
+    overflow-y: auto;
+    font-family: var(--mono);
+  }
+  .health-fix-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .health-fix-btn:hover { background: var(--primary-light); }
+  .health-fix-btn.fixing { background: var(--text-3); cursor: wait; }
+
+  .health-ok-msg {
+    text-align: center;
+    padding: 30px;
+    color: #4CAF50;
+  }
+  .health-ok-msg .ok-icon { font-size: 48px; margin-bottom: 10px; }
+  .health-ok-msg .ok-text { font-size: 15px; font-weight: 700; }
+  .health-ok-msg .ok-sub { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+  .health-last-check {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-3);
+    padding: 10px;
+  }
+
+  @media(max-width:600px) {
+    .health-fab { bottom: 80px; left: 14px; width: 42px; height: 42px; font-size: 18px; }
+    .health-panel-overlay { padding: 0; align-items: flex-end; }
+    .health-panel { border-radius: 16px 16px 0 0; max-height: 90vh; }
+    .health-summary { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .health-summary-card .hs-num { font-size: 20px; }
+  }
 </style>
 </head>
 <body>
@@ -2226,6 +2448,29 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- ═════════════ HEALTH MONITOR ═════════════ -->
+<button class="health-fab" id="health-fab" onclick="openHealthPanel()" title="ตรวจสุขภาพระบบ">
+  🩺
+  <span class="health-count" id="health-count" style="display:none;">0</span>
+</button>
+
+<div class="health-panel-overlay" id="health-panel-overlay">
+  <div class="health-panel">
+    <div class="health-panel-header">
+      <div class="health-panel-title">🩺 สุขภาพระบบ</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="health-status-badge ok" id="health-status-badge">ปกติ</span>
+        <button class="filter-btn" onclick="closeHealthPanel()" style="font-size:16px;padding:4px 10px;">✕</button>
+      </div>
+    </div>
+    <div class="health-panel-body" id="health-panel-body">
+      <div class="health-summary" id="health-summary"></div>
+      <div id="health-items"></div>
+      <div class="health-last-check" id="health-last-check"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ═════════════ CHATBOT ═════════════ -->
 <button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="ถามบอท">
@@ -3507,12 +3752,20 @@ const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
   {
+    id: 16,
+    title: 'เพิ่มระบบตรวจสุขภาพระบบอัตโนมัติ',
+    type: 'feature',
+    date: '2026-06-18',
+    detail: 'เพิ่มปุ่ม 🩺 มุมซ้ายล่าง ตรวจสอบระบบหลังบ้านอัตโนมัติ\n- ตรวจทุก 5 นาที: Firebase, บาร์โค้ดซ้ำ, สต็อกติดลบ, สินค้าขาดทุน, ข้อมูลไม่ครบ\n- แสดงสถานะ เขียว=ปกติ แดง=วิกฤต เหลือง=เตือน\n- แก้ไขปัญหาอัตโนมัติได้ (บาร์โค้ดซ้ำ, สต็อกติดลบ)\n- มีคำแนะนำสำหรับปรับปรุงระบบ',
+    order: 0,
+  },
+  {
     id: 15,
     title: 'สแกนบาร์โค้ดด้วยกล้องได้แล้ว',
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มระบบสแกนบาร์โค้ดผ่านกล้องมือถือ/เว็บแคม\n- กดปุ่ม 📷 ที่หน้าขายสินค้า เปิดกล้องสแกนได้เลย\n- รองรับบาร์โค้ด EAN-13, EAN-8, UPC-A, Code-128, QR Code\n- สแกนแล้วเพิ่มสินค้าเข้าตะกร้าอัตโนมัติ\n- มี vibrate feedback เมื่อสแกนสำเร็จ\n- ยังพิมพ์บาร์โค้ดเองได้ในแท็บ "พิมพ์เอง"',
-    order: 0,
+    order: 1,
   },
   {
     id: 14,
@@ -3520,7 +3773,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'update',
     date: '2026-06-17',
     detail: 'ย้ายช่อง "⚠️ สินค้าต้องติดตาม" (สินค้าใกล้หมดและหมดสต็อก) จากหน้าจัดการสินค้าไปแสดงในหน้ารายงานแทน\n- อยู่ใต้การ์ดสรุปยอดขาย เหนือปฏิทิน\n- กดที่การ์ดสินค้าเพื่อแก้ไขสต็อกได้เหมือนเดิม\n- หน้าจัดการสินค้าเหลือเฉพาะตารางจัดการ ไม่รกตา',
-    order: 1,
+    order: 2,
   },
   {
     id: 13,
@@ -3528,7 +3781,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ระบบเวลาใน changelog ที่แสดง 12:0X ทุกรายการ\n- เปลี่ยนจาก timestamp ปลอม (เที่ยงวัน+offset) เป็นเวลาจริงตอน seed เข้า Firebase\n- เพิ่ม migration แก้ไข entries เก่าที่เวลาผิดใน Firebase อัตโนมัติ\n- รายการใหม่ที่สร้างจากปุ่ม "เพิ่มบันทึก" ใช้เวลาจริงอยู่แล้ว',
-    order: 2,
+    order: 3,
   },
   {
     id: 12,
@@ -3536,7 +3789,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ใบเสร็จแสดงรายละเอียดเพิ่มเติมของสินค้าทุกรายการ\n- แสดงยี่ห้อ/แบรนด์ และขนาด/น้ำหนักใต้ชื่อสินค้า\n- แสดงเลขบาร์โค้ด\n- แสดงหน่วยนับ (ขวด, ซอง, แพ็ค ฯลฯ) ต่อท้ายจำนวน\n- แสดงเลขบิลและจำนวนรายการรวมในใบเสร็จพิมพ์\n- อัปเดตทั้ง 3 จุด: modal ชำระเงิน, modal สำเร็จ, และหน้าพิมพ์ใบเสร็จ',
-    order: 3,
+    order: 4,
   },
   {
     id: 11,
@@ -3544,7 +3797,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มระบบแจ้งเตือนเมื่อมีการอัปเดตระบบใหม่\n- แสดงจุดแจ้งเตือนสีแดงบนแท็บ "อัปเดต" เมื่อมีรายการใหม่ที่ยังไม่ได้อ่าน\n- แสดง popup แจ้งเตือนอัตโนมัติพร้อมสรุปรายการอัปเดตใหม่\n- จำสถานะการอ่านใน localStorage ข้ามเซสชันได้\n- กดดูรายละเอียดจะพาไปหน้าอัปเดตโดยตรง\n- รองรับทั้ง Firebase real-time และ localStorage fallback',
-    order: 4,
+    order: 5,
   },
   {
     id: 10,
@@ -3552,7 +3805,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มบอทลอยอยู่มุมขวาล่าง กดปุ่ม 🤖 เพื่อเปิด\nถามได้เลยว่า:\n• ยอดขาย/กำไร วันนี้ เดือนนี้ ทั้งหมด\n• สินค้าใกล้หมด/หมดสต็อก\n• สต็อกสินค้าชิ้นนั้นๆ\n• สินค้าขายดีสุด / กำไรดีสุด\n• ราคาสินค้า\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด\nบอทดึงข้อมูลจริงจาก Firebase แบบ real-time',
-    order: 5,
+    order: 6,
   },
   {
     id: 9,
@@ -3560,7 +3813,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ปรับหน้าตาให้ใช้งานบนสมาร์ทโฟนได้เต็มรูปแบบ\n- เพิ่ม Bottom Navigation Bar แทน top tabs บนมือถือ\n- ตารางสินค้าเปลี่ยนเป็น card list อ่านง่ายขึ้น\n- Modal เปิดจากด้านล่างแบบ bottom sheet\n- ปุ่มและ touch target ใหญ่ขึ้นเหมาะกับนิ้วมือ\n- input font size 16px ป้องกัน iOS zoom อัตโนมัติ\n- ปฏิทินและการ์ดต่างๆ ปรับขนาดให้พอดีหน้าจอเล็ก',
-    order: 6,
+    order: 7,
   },
   {
     id: 8,
@@ -3568,7 +3821,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ 2 จุด\n- บันทึกอัปเดตเดิมแสดงเวลา 07:00 เพราะ timestamp เป็น UTC+0 แก้โดยใช้เวลาเครื่อง (local time) แทน\n- สินค้าที่ไม่มีบาร์โค้ดจะได้รับ EAN-13 อัตโนมัติเมื่อระบบตรวจพบ',
-    order: 7,
+    order: 8,
   },
   {
     id: 7,
@@ -3576,7 +3829,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่ม 2 ฟีเจอร์ใหม่\n- บันทึกอัปเดตแสดงวันที่และเวลาแบบเต็ม (วัน/เดือน/ปี ชั่วโมง:นาที)\n- เพิ่มสินค้าใหม่จะสร้างเลขบาร์โค้ด 13 หลักให้อัตโนมัติ (EAN-13 format ขึ้นต้นด้วย 999) แก้ไขเองได้หากต้องการ',
-    order: 8,
+    order: 9,
   },
   {
     id: 6,
@@ -3584,7 +3837,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ออกแบบหน้าจัดการสินค้าใหม่ทั้งหมด\n- เพิ่มแถบสรุป: สินค้าทั้งหมด / ใกล้หมด / หมดสต็อก / ปกติ\n- เพิ่มช่อง "⚠️ สินค้าต้องติดตาม" แสดงเฉพาะสินค้าใกล้หมดและหมดสต็อก กดเพื่อแก้ไขได้เลย\n- เพิ่มตัวเลือกเรียงสินค้า: ชื่อ / หมวดหมู่ / สต็อก / ราคา\n- ตารางสินค้าแสดง % กำไรต่อชิ้นและบาร์โค้ดในบรรทัดเดียวกัน\n- เมื่อเรียงตามหมวดหมู่จะมีหัวกลุ่มคั่นแต่ละหมวด',
-    order: 9,
+    order: 10,
   },
   {
     id: 1,
@@ -3592,7 +3845,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มแท็บ "📝 อัปเดต" สำหรับบันทึกการแก้ไขและฟีเจอร์ใหม่\n- เพิ่ม/แก้ไข/ลบบันทึกได้\n- เลือกประเภท: แก้ไขปัญหา / เพิ่มฟีเจอร์ / อัปเดต / หมายเหตุ\n- Sync real-time ผ่าน Firebase ทุกเครื่องเห็นพร้อมกัน',
-    order: 10,
+    order: 11,
   },
   {
     id: 2,
@@ -3600,7 +3853,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'ลบ toast "เชื่อมต่อ Firebase แล้ว" ที่ขึ้นทุกครั้งเมื่อเปิดเว็บ เพราะบังหน้าจอโดยไม่จำเป็น',
-    order: 11,
+    order: 12,
   },
   {
     id: 3,
@@ -3608,7 +3861,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ไข toast notification ให้แสดงผล 4 วินาทีแล้วค่อยๆ จางหายไปแทนที่จะค้างอยู่บนหน้าจอตลอด',
-    order: 12,
+    order: 13,
   },
   {
     id: 4,
@@ -3616,7 +3869,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนวิธีเก็บข้อมูลสินค้าใน Firebase จาก array → object keyed by ID\n- เดิม: db.ref("products").set(array) ทำให้เครื่อง A ทับข้อมูลเครื่อง B\n- ใหม่: db.ref("products/ID").set(p) อัปเดตเฉพาะสินค้าที่แก้ไข ไม่กระทบเครื่องอื่น\n- ทุกเครื่องรับข้อมูลอัปเดต real-time อัตโนมัติผ่าน Firebase listener',
-    order: 13,
+    order: 14,
   },
   {
     id: 5,
@@ -3624,7 +3877,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนการหักสต็อกไปใช้ Firebase Transaction แทนการแก้ค่าในหน่วยความจำ\n- เดิม: ลดค่า stock ในตัวแปร → save ทีหลัง (เกิด race condition ถ้า Firebase listener ยิงก่อน)\n- ใหม่: db.ref("products/ID/stock").transaction() อัปเดต atomic ทันที ไม่มี race condition\n- รองรับการขายพร้อมกัน 2 เครื่องได้อย่างถูกต้อง',
-    order: 14,
+    order: 15,
   },
 ];
 
@@ -3820,6 +4073,394 @@ async function deleteChangelog(key) {
   }
   showToast('ลบแล้ว','error');
 }
+
+// ══════════════════════════════════════════
+//  SYSTEM HEALTH MONITOR
+// ══════════════════════════════════════════
+let healthIssues = [];
+let lastHealthCheck = null;
+
+function openHealthPanel() {
+  document.getElementById('health-panel-overlay').classList.add('open');
+  runHealthCheck();
+}
+function closeHealthPanel() {
+  document.getElementById('health-panel-overlay').classList.remove('open');
+}
+
+function runHealthCheck() {
+  healthIssues = [];
+  const checks = [
+    checkFirebaseConnection,
+    checkDuplicateBarcodes,
+    checkMissingBarcodes,
+    checkNegativeStock,
+    checkSellingAtLoss,
+    checkMissingProductFields,
+    checkStockAlerts,
+    checkSalesIntegrity,
+    checkLargeLocalStorage,
+    checkProductRecommendations,
+  ];
+  checks.forEach(fn => fn());
+  lastHealthCheck = new Date();
+  renderHealthPanel();
+  updateHealthFab();
+}
+
+function checkFirebaseConnection() {
+  if (!db) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '📡',
+      title: 'ไม่ได้เชื่อมต่อ Firebase',
+      desc: 'ระบบใช้ localStorage เก็บข้อมูลอยู่ ข้อมูลจะไม่ sync ข้ามเครื่อง ถ้าล้าง browser data ข้อมูลจะหาย',
+      detail: 'Firebase config อาจไม่ถูกต้อง หรือ internet ไม่เสถียร',
+    });
+  }
+}
+
+function checkDuplicateBarcodes() {
+  const bcMap = {};
+  products.forEach(p => {
+    if (!p.barcode) return;
+    if (!bcMap[p.barcode]) bcMap[p.barcode] = [];
+    bcMap[p.barcode].push(p);
+  });
+  const dupes = Object.entries(bcMap).filter(([, arr]) => arr.length > 1);
+  if (dupes.length) {
+    const details = dupes.map(([bc, arr]) => `${bc}: ${arr.map(p => p.name).join(', ')}`).join('\n');
+    healthIssues.push({
+      severity: 'critical',
+      icon: '🔴',
+      title: `บาร์โค้ดซ้ำ ${dupes.length} รายการ`,
+      desc: 'มีสินค้าหลายตัวใช้บาร์โค้ดเดียวกัน สแกนแล้วจะได้สินค้าผิดตัว',
+      detail: details,
+      fix: {
+        label: 'สร้างบาร์โค้ดใหม่ให้ตัวซ้ำ',
+        explain: 'จะสร้าง EAN-13 บาร์โค้ดใหม่ (ขึ้นต้น 999) ให้สินค้าตัวที่ซ้ำ (เก็บตัวแรกไว้) แล้วอัปเดตลง Firebase',
+        action: fixDuplicateBarcodes,
+      },
+    });
+  }
+}
+
+function fixDuplicateBarcodes() {
+  const bcMap = {};
+  products.forEach(p => {
+    if (!p.barcode) return;
+    if (!bcMap[p.barcode]) bcMap[p.barcode] = [];
+    bcMap[p.barcode].push(p);
+  });
+  let fixCount = 0;
+  Object.values(bcMap).forEach(arr => {
+    if (arr.length <= 1) return;
+    arr.slice(1).forEach(p => {
+      p.barcode = genBarcode();
+      if (db) db.ref('products/' + p.id + '/barcode').set(p.barcode);
+      fixCount++;
+    });
+  });
+  showToast(`แก้บาร์โค้ดซ้ำ ${fixCount} รายการ`, 'success');
+  runHealthCheck();
+}
+
+function checkMissingBarcodes() {
+  const missing = products.filter(p => !p.barcode);
+  if (missing.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '📦',
+      title: `สินค้าไม่มีบาร์โค้ด ${missing.length} รายการ`,
+      desc: 'สินค้าเหล่านี้จะสแกนบาร์โค้ดไม่ได้',
+      detail: missing.map(p => p.name).join(', '),
+      fix: {
+        label: 'สร้างบาร์โค้ดให้ทั้งหมด',
+        explain: 'จะสร้าง EAN-13 บาร์โค้ดอัตโนมัติ (ขึ้นต้น 999) ให้สินค้าที่ยังไม่มี แล้วอัปเดตลง Firebase',
+        action: fixMissingBarcodes,
+      },
+    });
+  }
+}
+
+function fixMissingBarcodes() {
+  let fixCount = 0;
+  products.forEach(p => {
+    if (!p.barcode) {
+      p.barcode = genBarcode();
+      if (db) db.ref('products/' + p.id + '/barcode').set(p.barcode);
+      fixCount++;
+    }
+  });
+  showToast(`ใส่บาร์โค้ดให้ ${fixCount} รายการ`, 'success');
+  runHealthCheck();
+}
+
+function checkNegativeStock() {
+  const neg = products.filter(p => p.stock < 0);
+  if (neg.length) {
+    healthIssues.push({
+      severity: 'critical',
+      icon: '🚨',
+      title: `สต็อกติดลบ ${neg.length} รายการ`,
+      desc: 'สินค้าเหล่านี้มีสต็อกติดลบ ผิดปกติ อาจเกิดจาก bug ตอนหักสต็อก',
+      detail: neg.map(p => `${p.name}: ${p.stock} ${p.unit||'ชิ้น'}`).join('\n'),
+      fix: {
+        label: 'ตั้งสต็อกเป็น 0',
+        explain: 'จะตั้งค่าสต็อกสินค้าที่ติดลบเป็น 0 ทั้งหมด แล้วอัปเดตลง Firebase',
+        action: fixNegativeStock,
+      },
+    });
+  }
+}
+
+function fixNegativeStock() {
+  products.filter(p => p.stock < 0).forEach(p => {
+    p.stock = 0;
+    if (db) db.ref('products/' + p.id + '/stock').set(0);
+  });
+  showToast('ตั้งสต็อกติดลบเป็น 0 แล้ว', 'success');
+  runHealthCheck();
+}
+
+function checkSellingAtLoss() {
+  const lossList = products.filter(p => p.cost > 0 && p.price > 0 && p.cost >= p.price);
+  if (lossList.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '💸',
+      title: `สินค้าขายไม่ได้กำไร ${lossList.length} รายการ`,
+      desc: 'สินค้าเหล่านี้มีต้นทุนเท่ากับหรือมากกว่าราคาขาย ขายแล้วขาดทุน',
+      detail: lossList.map(p => `${p.name}: ขาย ฿${p.price} ต้นทุน ฿${p.cost} (${p.cost > p.price ? 'ขาดทุน ฿' + (p.cost - p.price) : 'เท่าทุน'})`).join('\n'),
+    });
+  }
+}
+
+function checkMissingProductFields() {
+  const noPrice = products.filter(p => !p.price || p.price <= 0);
+  const noCost = products.filter(p => !p.cost && p.cost !== 0);
+  const noCat = products.filter(p => !p.cat);
+  const issues = [];
+  if (noPrice.length) issues.push(`ไม่มีราคาขาย: ${noPrice.map(p=>p.name).join(', ')}`);
+  if (noCost.length) issues.push(`ไม่มีต้นทุน: ${noCost.map(p=>p.name).join(', ')}`);
+  if (noCat.length) issues.push(`ไม่มีหมวดหมู่: ${noCat.map(p=>p.name).join(', ')}`);
+  if (issues.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '📝',
+      title: 'ข้อมูลสินค้าไม่ครบ',
+      desc: 'สินค้าบางรายการยังกรอกข้อมูลไม่ครบ อาจทำให้คำนวณกำไรผิดหรือจัดหมวดหมู่ไม่ได้',
+      detail: issues.join('\n'),
+    });
+  }
+}
+
+function checkStockAlerts() {
+  const outOfStock = products.filter(p => p.stock === 0);
+  const lowStock = products.filter(p => p.stock > 0 && p.stock <= p.alert);
+  if (outOfStock.length) {
+    healthIssues.push({
+      severity: 'critical',
+      icon: '🚫',
+      title: `สินค้าหมดสต็อก ${outOfStock.length} รายการ`,
+      desc: 'สินค้าเหล่านี้สต็อกเป็น 0 ขายไม่ได้แล้ว ควรสั่งเพิ่ม',
+      detail: outOfStock.map(p => p.name).join(', '),
+    });
+  }
+  if (lowStock.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '⚠️',
+      title: `สินค้าใกล้หมด ${lowStock.length} รายการ`,
+      desc: 'สินค้าเหล่านี้สต็อกต่ำกว่าจุดแจ้งเตือน ควรสั่งเพิ่มเร็วๆ นี้',
+      detail: lowStock.map(p => `${p.name}: เหลือ ${p.stock}/${p.alert}`).join(', '),
+    });
+  }
+}
+
+function checkSalesIntegrity() {
+  const badSales = sales.filter(s => !s.time || !s.total || !s.items || !s.items.length);
+  if (badSales.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '🧾',
+      title: `บิลข้อมูลไม่สมบูรณ์ ${badSales.length} รายการ`,
+      desc: 'พบบิลที่ไม่มีเวลา หรือไม่มีรายการสินค้า อาจทำให้รายงานไม่ถูกต้อง',
+    });
+  }
+}
+
+function checkLargeLocalStorage() {
+  try {
+    let total = 0;
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        total += localStorage.getItem(key).length * 2;
+      }
+    }
+    const mb = total / (1024 * 1024);
+    if (mb > 4) {
+      healthIssues.push({
+        severity: 'warning',
+        icon: '💾',
+        title: `localStorage เกือบเต็ม (${mb.toFixed(1)} MB)`,
+        desc: 'เบราว์เซอร์จำกัด localStorage ไว้ ~5 MB ถ้าเต็มจะเก็บข้อมูลใหม่ไม่ได้',
+      });
+    }
+  } catch(e) {}
+}
+
+function checkProductRecommendations() {
+  if (products.length > 0 && products.length < 10) {
+    healthIssues.push({
+      severity: 'suggestion',
+      icon: '💡',
+      title: 'เพิ่มสินค้าอีกหน่อย',
+      desc: `ตอนนี้มีสินค้า ${products.length} รายการ ลองเพิ่มสินค้าให้ครบทุกตัวที่ขายจริงจะใช้ระบบได้เต็มประสิทธิภาพ`,
+    });
+  }
+  const noAlert = products.filter(p => !p.alert || p.alert <= 0);
+  if (noAlert.length > products.length * 0.3 && noAlert.length > 3) {
+    healthIssues.push({
+      severity: 'suggestion',
+      icon: '🔔',
+      title: `สินค้า ${noAlert.length} รายการไม่มีจุดแจ้งเตือนสต็อก`,
+      desc: 'ควรตั้งจุดแจ้งเตือน (Alert) เช่น 5 ชิ้น เพื่อให้ระบบเตือนก่อนสินค้าจะหมด',
+    });
+  }
+}
+
+function renderHealthPanel() {
+  const crits = healthIssues.filter(i => i.severity === 'critical');
+  const warns = healthIssues.filter(i => i.severity === 'warning');
+  const suggests = healthIssues.filter(i => i.severity === 'suggestion');
+  const total = crits.length + warns.length;
+
+  const badge = document.getElementById('health-status-badge');
+  if (crits.length) {
+    badge.className = 'health-status-badge crit';
+    badge.textContent = `พบปัญหา ${total} จุด`;
+  } else if (warns.length) {
+    badge.className = 'health-status-badge warn';
+    badge.textContent = `เตือน ${warns.length} จุด`;
+  } else {
+    badge.className = 'health-status-badge ok';
+    badge.textContent = 'ปกติ';
+  }
+
+  document.getElementById('health-summary').innerHTML = `
+    <div class="health-summary-card">
+      <div class="hs-num red">${crits.length}</div>
+      <div class="hs-label">วิกฤต</div>
+    </div>
+    <div class="health-summary-card">
+      <div class="hs-num yellow">${warns.length}</div>
+      <div class="hs-label">เตือน</div>
+    </div>
+    <div class="health-summary-card">
+      <div class="hs-num green">${suggests.length}</div>
+      <div class="hs-label">แนะนำ</div>
+    </div>
+  `;
+
+  let html = '';
+
+  if (!healthIssues.length) {
+    html = `<div class="health-ok-msg">
+      <div class="ok-icon">✅</div>
+      <div class="ok-text">ระบบปกติทุกอย่าง!</div>
+      <div class="ok-sub">ไม่พบปัญหา ข้อมูลสมบูรณ์ดี</div>
+    </div>`;
+  } else {
+    if (crits.length) {
+      html += `<div class="health-section-title">🔴 วิกฤต — ต้องแก้ไข</div>`;
+      crits.forEach((item, idx) => { html += renderHealthItem(item, 'c' + idx); });
+    }
+    if (warns.length) {
+      html += `<div class="health-section-title">🟡 เตือน — ควรตรวจสอบ</div>`;
+      warns.forEach((item, idx) => { html += renderHealthItem(item, 'w' + idx); });
+    }
+    if (suggests.length) {
+      html += `<div class="health-section-title">💡 แนะนำ — ทำให้ดีขึ้น</div>`;
+      suggests.forEach((item, idx) => { html += renderHealthItem(item, 's' + idx); });
+    }
+  }
+
+  document.getElementById('health-items').innerHTML = html;
+
+  const checkTime = lastHealthCheck.toLocaleString('th-TH', {
+    timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+  document.getElementById('health-last-check').innerHTML =
+    `ตรวจล่าสุด: ${checkTime} &nbsp;·&nbsp; <a href="javascript:runHealthCheck()" style="color:var(--primary);font-weight:700;">ตรวจอีกครั้ง</a>`;
+}
+
+function renderHealthItem(item, key) {
+  const sevLabel = item.severity === 'critical' ? 'วิกฤต' : item.severity === 'warning' ? 'เตือน' : 'แนะนำ';
+  let fixBtn = '';
+  if (item.fix) {
+    fixBtn = `
+      <div style="margin-top:8px;padding:10px 12px;background:var(--surface2);border-radius:8px;">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:6px;">🔧 <b>แก้ไข:</b> ${item.fix.explain}</div>
+        <button class="health-fix-btn" id="fix-${key}" onclick="confirmHealthFix('${key}')">
+          ✅ ${item.fix.label}
+        </button>
+      </div>`;
+  }
+  return `
+    <div class="health-item ${item.severity}">
+      <div class="health-item-header">
+        <span class="health-item-icon">${item.icon}</span>
+        <span class="health-item-title">${item.title}</span>
+        <span class="health-item-severity">${sevLabel}</span>
+      </div>
+      <div class="health-item-desc">${item.desc}</div>
+      ${item.detail ? `<div class="health-item-detail">${item.detail}</div>` : ''}
+      ${fixBtn}
+    </div>`;
+}
+
+function confirmHealthFix(key) {
+  const prefix = key[0];
+  const idx = parseInt(key.slice(1));
+  let item;
+  if (prefix === 'c') item = healthIssues.filter(i => i.severity === 'critical')[idx];
+  else if (prefix === 'w') item = healthIssues.filter(i => i.severity === 'warning')[idx];
+  else item = healthIssues.filter(i => i.severity === 'suggestion')[idx];
+
+  if (!item || !item.fix) return;
+  if (confirm(`ต้องการแก้ไขหรือไม่?\n\n${item.fix.explain}`)) {
+    const btn = document.getElementById('fix-' + key);
+    if (btn) { btn.textContent = 'กำลังแก้ไข...'; btn.className = 'health-fix-btn fixing'; btn.disabled = true; }
+    setTimeout(() => item.fix.action(), 300);
+  }
+}
+
+function updateHealthFab() {
+  const fab = document.getElementById('health-fab');
+  const countEl = document.getElementById('health-count');
+  const crits = healthIssues.filter(i => i.severity === 'critical').length;
+  const warns = healthIssues.filter(i => i.severity === 'warning').length;
+  const total = crits + warns;
+
+  if (crits > 0) {
+    fab.className = 'health-fab critical';
+    countEl.style.display = 'flex';
+    countEl.textContent = total;
+  } else if (warns > 0) {
+    fab.className = 'health-fab warning';
+    countEl.style.display = 'flex';
+    countEl.textContent = total;
+  } else {
+    fab.className = 'health-fab';
+    countEl.style.display = 'none';
+  }
+}
+
+setTimeout(() => {
+  runHealthCheck();
+  setInterval(runHealthCheck, 5 * 60 * 1000);
+}, 3000);
 
 // ══════════════════════════════════════════
 //  CHATBOT
