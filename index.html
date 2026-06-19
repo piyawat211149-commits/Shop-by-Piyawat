@@ -2665,10 +2665,10 @@
   </div>
   <div class="chat-messages" id="chat-messages"></div>
   <div class="chat-suggestions" id="chat-suggestions">
-    <button class="chat-chip" onclick="sendChatChip(this)">สต็อกใกล้หมด?</button>
     <button class="chat-chip" onclick="sendChatChip(this)">ยอดขายวันนี้</button>
-    <button class="chat-chip" onclick="sendChatChip(this)">กำไรเดือนนี้</button>
-    <button class="chat-chip" onclick="sendChatChip(this)">สินค้าขายดีสุด</button>
+    <button class="chat-chip" onclick="sendChatChip(this)">ควรสั่งอะไรเพิ่ม</button>
+    <button class="chat-chip" onclick="sendChatChip(this)">ควรโฟกัสสินค้าไหน</button>
+    <button class="chat-chip" onclick="sendChatChip(this)">กำไร % คิดยังไง</button>
   </div>
   <div class="chat-input-row">
     <input class="chat-input" id="chat-input" type="text" placeholder="พิมพ์คำถาม..." onkeydown="if(event.key==='Enter')sendChat()">
@@ -3918,6 +3918,27 @@ function updateCartDrawer() {
   }
 }
 
+// ── log คำถามที่ตอบไม่ได้ ──
+function logUnknownQuestion(text) {
+  if (!text || text.trim().length < 2) return;
+  const q = text.trim();
+  const stored = JSON.parse(localStorage.getItem('pos_unknown_q') || '[]');
+  const exist = stored.find(e => e.q.toLowerCase() === q.toLowerCase());
+  if (exist) { exist.count = (exist.count||1)+1; exist.lastTs = Date.now(); }
+  else stored.unshift({ q, ts: Date.now(), count: 1 });
+  localStorage.setItem('pos_unknown_q', JSON.stringify(stored.slice(0, 100)));
+  if (db) {
+    db.ref('unknownQuestions').orderByChild('q').equalTo(q).once('value', snap => {
+      if (snap.exists()) {
+        const key = Object.keys(snap.val())[0];
+        db.ref(`unknownQuestions/${key}`).update({ count: (snap.val()[key].count||0)+1, lastTs: Date.now() });
+      } else {
+        db.ref('unknownQuestions').push({ q, ts: Date.now(), count: 1 });
+      }
+    });
+  }
+}
+
 // ══════════════════════════════════════════
 //  CHANGELOG
 // ══════════════════════════════════════════
@@ -3927,6 +3948,14 @@ const CL_TYPE_LABEL = { fix:'🔧 แก้ไขปัญหา', feature:'✨ 
 const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 17,
+    title: 'อัปเกรดแชทบอท — ตอบคำถามราคา กำไร และแนะนำสินค้า',
+    type: 'feature',
+    date: '2026-06-19',
+    detail: 'เพิ่มความสามารถแชทบอท 6 หมวดใหม่\n- วิธีคิด % กำไร: อธิบาย Gross Margin vs Markup พร้อมตัวอย่างสินค้าจริง\n- แนะนำตั้งราคา: จัดอันดับสินค้า margin สูง/ต่ำ\n- ควรสั่งอะไรเพิ่ม: แสดงรายการหมด/ใกล้หมดสต็อก\n- เปรียบเทียบสินค้า: เช่น "เปรียบ น้ำเปล่า กับ น้ำอัดลม"\n- ควรโฟกัสสินค้าไหน: คำนวณ score = margin × stock\n- วิธีใช้งานระบบ: ตอบคำถามเพิ่มสินค้า บาร์โค้ด ใบเสร็จ\nอัปเดต chip แนะนำใหม่ 4 ปุ่ม และ help text ครบถ้วน',
+    order: 0,
+  },
   {
     id: 16,
     title: 'เพิ่มระบบตรวจสุขภาพระบบอัตโนมัติ',
@@ -4720,7 +4749,23 @@ function thisMonthSales() {
 }
 
 function processChat(input) {
-  const q = input.toLowerCase().trim();
+  // ── normalize typos & aliases ──
+  const _norm = s => s
+    .replace(/mrakup|markp|mrkup|มาคัพ|มาร์คอัพ|mark up/g, 'markup')
+    .replace(/marginn?|มาร์จิ้น|มาร์จิน/g, 'margin')
+    .replace(/สต๊อก|สต็อค|สต้อก|สตอก/g, 'สต็อก')
+    .replace(/กำไล/g, 'กำไร')
+    .replace(/ขายดีที่สุด/g, 'ขายดีสุด')
+    .replace(/หมดแล้ว|หมดเลย/g, 'หมดสต็อก')
+    .replace(/ราคาต้นทุน/g, 'ต้นทุน')
+    .replace(/ได้กี่บาท|ขายได้เท่าไหร่|ขายได้กี่|รายรับ/g, 'ยอดขาย')
+    .replace(/ได้กำไรเท่าไหร่|กำไรได้กี่|ได้กำไรกี่/g, 'กำไรทั้งหมด')
+    .replace(/ของเหลือ|เหลืออะไร|มีอะไรเหลือ/g, 'สต็อกทั้งหมด')
+    .replace(/อะไรขายดี|ขายดีคือ/g, 'ขายดีสุด')
+    .replace(/กำไรดีสุด|กำไรดีที่สุด/g, 'กำไรดีสุดคืออะไร')
+    .replace(/คุ้มไหม|ขาดทุนไหม|กำไรมั้ย/g, 'กำไรทั้งหมด')
+    .replace(/เปิดร้านมา|ขายมา|ทำมา/g, 'ยอดขายทั้งหมด');
+  const q = _norm(input.toLowerCase().trim());
 
   // ── ทักทาย ──
   if (/^(สวัสดี|หวัดดี|ดีจ้า|ดีครับ|hello|hi|hey|yo|ว่าไง|อยู่ไหม)/.test(q)) {
@@ -4921,9 +4966,102 @@ function processChat(input) {
     return `🧮 ${calcMatch[1]} × ${calcMatch[2]} = **฿${result.toFixed(2)}** ครับ`;
   }
 
-  // ── วิธีใช้งาน ──
+  // ── วิธีคิด % กำไร ──
+  if (/กำไร.*%|%.*กำไร|margin|gross|markup|วิธีคิด.*กำไร|หมายความว่า.*%|%.*หมาย|กำไร.*คิดยังไง/.test(q)) {
+    const eg = products.find(p => p.price > 0 && p.cost > 0);
+    if (eg) {
+      const gm = (((eg.price - eg.cost) / eg.price) * 100).toFixed(1);
+      const mu = (((eg.price - eg.cost) / eg.cost) * 100).toFixed(1);
+      const profitBaht = (eg.price - eg.cost).toFixed(2);
+      return `📐 **วิธีคิด % กำไรในระบบ**\nใช้ **Gross Margin %** = (ราคาขาย − ต้นทุน) ÷ ราคาขาย × 100\n\nตัวอย่าง **${eg.emoji||'📦'} ${eg.name}**\n• ราคาขาย ฿${eg.price.toFixed(2)} | ต้นทุน ฿${eg.cost.toFixed(2)}\n• กำไร/ชิ้น = ฿${profitBaht}\n• **Gross Margin = ${gm}%** ← ที่ระบบแสดง\n• Markup % = ${mu}% ← บวกเพิ่มจากต้นทุน\n\n💡 Gross Margin บอกว่ากำไรคิดเป็น % ของยอดขาย\nMarkup บอกว่าบวกเพิ่มจากต้นทุนกี่ %`;
+    }
+  }
+
+  // ── แนะนำตั้งราคา ──
+  if (/ตั้งราคา|ควรขาย|แนะนำราคา|ราคาเหมาะสม|ราคาดี|margin เท่าไหร่|กำไรกี่%|กำไรกี่เปอร์/.test(q)) {
+    const sorted = [...products].filter(p => p.price > 0 && p.cost > 0).sort((a,b) => {
+      const ma = (a.price-a.cost)/a.price; const mb = (b.price-b.cost)/b.price;
+      return mb - ma;
+    });
+    if (sorted.length > 0) {
+      const top = sorted.slice(0,3).map(p => {
+        const gm = (((p.price-p.cost)/p.price)*100).toFixed(0);
+        return `• ${p.emoji||'📦'} ${p.name} — ราคา ฿${p.price.toFixed(2)} (margin ${gm}%)`;
+      }).join('\n');
+      const low = sorted.slice(-3).reverse().map(p => {
+        const gm = (((p.price-p.cost)/p.price)*100).toFixed(0);
+        return `• ${p.emoji||'📦'} ${p.name} — margin ${gm}% (ควรทบทวนราคา)`;
+      }).join('\n');
+      return `💰 **แนะนำการตั้งราคา**\n\n✅ **Margin ดีสุด (ควรโปรโมต)**\n${top}\n\n⚠️ **Margin ต่ำสุด (ควรปรับราคา)**\n${low}\n\n💡 ร้านสะดวกซื้อทั่วไปควรมี margin ≥ 20%\nสินค้าใดต่ำกว่านี้ ควรเจรจาต้นทุนใหม่หรือปรับราคา`;
+    }
+  }
+
+  // ── แนะนำเติมสต็อก/สั่งของ ──
+  if (/ควรสั่ง|เติมสต็อก|สั่งเพิ่ม|สั่งของ|restock|ควรซื้อ|ต้องสั่ง/.test(q)) {
+    const lowStock = products.filter(p => p.stock !== undefined && p.stock <= (p.minStock || 5) && p.stock >= 0).sort((a,b) => a.stock - b.stock);
+    const outStock = products.filter(p => p.stock !== undefined && p.stock <= 0);
+    let msg = `🛒 **รายการที่ควรสั่งซื้อ**\n`;
+    if (outStock.length > 0) {
+      msg += `\n🚨 **หมดสต็อก (สั่งด่วน)**\n` + outStock.map(p => `• ${p.emoji||'📦'} ${p.name} — หมดแล้ว`).join('\n');
+    }
+    if (lowStock.length > 0) {
+      msg += `\n\n⚠️ **ใกล้หมด (ควรสั่งเร็วๆ นี้)**\n` + lowStock.map(p => `• ${p.emoji||'📦'} ${p.name} — เหลือ ${p.stock} ชิ้น`).join('\n');
+    }
+    if (outStock.length === 0 && lowStock.length === 0) {
+      msg += `\n✅ สต็อกทุกรายการยังอยู่ในระดับดีครับ ยังไม่ต้องสั่งเพิ่ม`;
+    }
+    return msg;
+  }
+
+  // ── เปรียบเทียบสินค้า ──
+  if (/เปรียบ|vs|อันไหน.*ดี|ดีกว่า|ต่างกัน/.test(q)) {
+    const names = products.map(p => p.name.toLowerCase());
+    const matched = products.filter(p => q.includes(p.name.toLowerCase()));
+    if (matched.length >= 2) {
+      const rows = matched.map(p => {
+        const gm = p.price > 0 ? (((p.price-p.cost)/p.price)*100).toFixed(1) : '—';
+        return `• ${p.emoji||'📦'} **${p.name}** | ราคา ฿${p.price.toFixed(2)} | ต้นทุน ฿${p.cost.toFixed(2)} | margin ${gm}% | สต็อก ${p.stock||0}`;
+      }).join('\n');
+      const best = matched.reduce((a,b) => ((a.price-a.cost)/a.price) > ((b.price-b.cost)/b.price) ? a : b);
+      return `🔍 **เปรียบเทียบสินค้า**\n\n${rows}\n\n💡 **${best.name}** มี margin ดีกว่า — คุ้มค่ากว่าในการขายครับ`;
+    } else {
+      return `🔍 ระบุชื่อสินค้าที่ต้องการเปรียบเทียบด้วยครับ เช่น\n"เปรียบ น้ำเปล่า กับ น้ำอัดลม"`;
+    }
+  }
+
+  // ── โฟกัสสินค้าไหน / แนะนำสินค้า ──
+  if (/โฟกัส|น่าลงทุน|คุ้มค่า|น่าขาย|แนะนำสินค้า|ควรเน้น|สินค้าดาว/.test(q)) {
+    const scored = products.filter(p => p.price > 0 && p.cost > 0 && p.stock > 0).map(p => {
+      const gm = (p.price - p.cost) / p.price;
+      const score = gm * Math.min(p.stock, 50);
+      return { ...p, gm, score };
+    }).sort((a,b) => b.score - a.score);
+    if (scored.length > 0) {
+      const top = scored.slice(0,5).map((p,i) => {
+        const stars = i === 0 ? '⭐⭐⭐' : i < 3 ? '⭐⭐' : '⭐';
+        return `${stars} ${p.emoji||'📦'} **${p.name}** — margin ${(p.gm*100).toFixed(0)}% | สต็อก ${p.stock} ชิ้น`;
+      }).join('\n');
+      return `🌟 **สินค้าที่ควรโฟกัส** (คำนวณจาก margin × สต็อก)\n\n${top}\n\n💡 โฟกัสสินค้าที่มี margin สูงและสต็อกพร้อมขาย จะได้กำไรสูงสุดครับ`;
+    }
+  }
+
+  // ── วิธีใช้งานระบบ ──
+  if (/วิธีเพิ่ม|เพิ่มสินค้า.*ยังไง|ลบสินค้า|แก้ไขสินค้า|บาร์โค้ด|ใบเสร็จ|พิมพ์ใบ/.test(q)) {
+    if (/เพิ่มสินค้า|เพิ่มสินค้า.*ยังไง/.test(q)) {
+      return `➕ **วิธีเพิ่มสินค้า**\n1. ไปที่เมนู **สินค้า** (แท็บล่าง)\n2. กด **"+ เพิ่มสินค้า"**\n3. กรอก ชื่อ, ราคาขาย, ต้นทุน, สต็อก\n4. เลือก Emoji และหมวดหมู่\n5. กด **บันทึก**\n\n💡 บาร์โค้ดจะถูกสร้างอัตโนมัติ (prefix 999)`;
+    }
+    if (/บาร์โค้ด/.test(q)) {
+      return `🔢 **บาร์โค้ด EAN-13**\nระบบสร้างบาร์โค้ดอัตโนมัติด้วย prefix **999**\nสแกนที่หน้า POS เพื่อเพิ่มสินค้าในบิลได้เลยครับ\n\nสามารถพิมพ์บาร์โค้ดจากหน้า **สินค้า** โดยกดที่สินค้านั้นๆ`;
+    }
+    if (/ใบเสร็จ|พิมพ์ใบ/.test(q)) {
+      return `🧾 **ใบเสร็จ**\nหลังชำระเงินแล้ว กด **"พิมพ์ใบเสร็จ"** ได้เลยครับ\nระบบจะเปิดหน้าต่างพิมพ์ของ browser\n\n💡 ใบเสร็จมีชื่อร้าน วันที่ รายการสินค้า และยอดรวม`;
+    }
+    return `📱 **วิธีใช้งานระบบ**\n• **POS** — สแกนหรือกดสินค้า → ชำระเงิน\n• **สินค้า** — เพิ่ม/แก้ไข/ลบสินค้า\n• **รายงาน** — ยอดขาย กำไร สินค้าขายดี\n• **แชทบอท** — ถามข้อมูลได้เลยครับ\n\nถามเพิ่มได้ เช่น "วิธีเพิ่มสินค้า" หรือ "บาร์โค้ดคืออะไร"`;
+  }
+
+  // ── ช่วยเหลือทั่วไป ──
   if (q.includes('วิธี')||q.includes('ช่วย')||q.includes('help')||q.includes('ทำยังไง')||q.includes('คำถาม')) {
-    return `📖 **ถามได้เลยครับ เช่น**\n• "ยอดขายวันนี้/เดือนนี้/ทั้งหมด"\n• "กำไรวันนี้/เดือนนี้"\n• "สินค้าใกล้หมด/หมดสต็อก"\n• "สต็อก [ชื่อสินค้า] เหลือเท่าไหร่"\n• "ขายดีสุดคืออะไร"\n• "กำไรดีสุดคืออะไร"\n• "บิลล่าสุด"\n• "สรุปวันนี้"\n• "จ่ายเงินสดกี่บาท"\n• "สินค้าราคาถูกสุด/แพงสุด"`;
+    return `📖 **ถามได้เลยครับ เช่น**\n\n📊 **ยอดขาย & กำไร**\n• "ยอดขายวันนี้/เดือนนี้/ทั้งหมด/เมื่อวาน"\n• "กำไรวันนี้/เดือนนี้" / "สรุปวันนี้"\n\n📦 **สต็อก & สินค้า**\n• "สินค้าใกล้หมด" / "หมดสต็อก"\n• "สต็อก [ชื่อสินค้า] เหลือเท่าไหร่"\n• "มีสินค้ากี่ชนิด"\n\n💡 **แนะนำ & วิเคราะห์**\n• "ควรสั่งอะไรเพิ่ม"\n• "ควรโฟกัสสินค้าไหน"\n• "แนะนำตั้งราคา"\n• "ขายดีสุด" / "กำไรดีสุด"\n\n📐 **ราคา & คำนวณ**\n• "กำไร % คิดยังไง"\n• "เปรียบ [สินค้า A] กับ [สินค้า B]"\n• "[จำนวน] × [ราคา]"\n\n🔧 **อื่นๆ**\n• "วิธีเพิ่มสินค้า" / "บาร์โค้ด"\n• "คำถามที่ตอบไม่ได้" — ดูคำถามที่ระบบยังตอบไม่ได้`;
   }
 
   // ── ค้นหาสินค้าชื่อ ──
@@ -4936,8 +5074,36 @@ function processChat(input) {
     return `${p.emoji||'📦'} **${p.name}**\n฿${p.price.toFixed(2)} | สต็อก ${st} ${p.unit||'ชิ้น'} | ${p.cat}`;
   }).join('\n\n');
 
-  // ── fallback ──
-  return `ขอโทษครับ ไม่เข้าใจคำถามนี้ 😅\nลองถามใหม่ได้เลยนะครับ เช่น\n• "ยอดขายวันนี้"\n• "สินค้าใกล้หมด"\n• "สรุปวันนี้"\nหรือพิมพ์ "ช่วย" เพื่อดูคำถามทั้งหมด`;
+  // ── ยอดขายเมื่อวาน ──
+  if ((q.includes('ยอด')||q.includes('ขาย')||q.includes('กำไร')) && q.includes('เมื่อวาน')) {
+    const yd = new Date(); yd.setDate(yd.getDate()-1);
+    const s = sales.filter(x => new Date(x.time).toDateString()===yd.toDateString());
+    const total = s.reduce((a,x)=>a+x.total,0);
+    const profit = s.reduce((a,x)=>a+x.profit,0);
+    if (!s.length) return `📅 เมื่อวานไม่มียอดขายครับ`;
+    return `📅 **เมื่อวาน**\n💵 ยอดขาย **฿${total.toFixed(0)}** (${s.length} บิล)\n💰 กำไร **฿${profit.toFixed(0)}** ครับ`;
+  }
+
+  // ── จำนวนสินค้า ──
+  if (/มีสินค้า.*กี่|กี่.*สินค้า|สินค้า.*กี่ชนิด|กี่ชนิด|กี่ประเภท|จำนวนสินค้า|สินค้ากี่/.test(q)) {
+    const total = products.length;
+    const inStock = products.filter(p=>p.stock>0).length;
+    const outStock = products.filter(p=>p.stock===0).length;
+    const cats = [...new Set(products.map(p=>p.cat).filter(Boolean))];
+    return `📦 **สินค้าในระบบ ${total} รายการ**\n✅ มีสต็อก ${inStock} | 🚫 หมด ${outStock}\n📂 ${cats.length} หมวดหมู่: ${cats.slice(0,5).join(', ')}${cats.length>5?'...':''}`;
+  }
+
+  // ── ดูคำถามที่ยังตอบไม่ได้ ──
+  if (/คำถามที่ตอบไม่ได้|คำถามค้าง|ยังตอบไม่ได้|คำถามใหม่|อยากรู้อะไร/.test(q)) {
+    const list = JSON.parse(localStorage.getItem('pos_unknown_q') || '[]');
+    if (!list.length) return `✅ ยังไม่มีคำถามที่ตอบไม่ได้เลยครับ 🎉`;
+    const rows = list.slice(0,10).map((e,i)=>`${i+1}. "${e.q}"${e.count>1?` (×${e.count})`:''}`).join('\n');
+    return `📚 **คำถามที่ยังตอบไม่ได้** (${list.length} รายการ)\n\n${rows}\n\n💡 เจ้าของร้านดูได้ที่นี่เพื่อนำไปอัปเดตระบบครับ`;
+  }
+
+  // ── fallback: log แล้วตอบ ──
+  logUnknownQuestion(input);
+  return `🤔 ยังตอบคำถามนี้ไม่ได้ครับ แต่**บันทึกไว้แล้ว** 📝\nจะพยายามอัปเดตให้ตอบได้ในอนาคตนะครับ\n\nลองถามแบบนี้ก่อนได้ครับ:\n• "ยอดขายวันนี้" / "กำไรเดือนนี้"\n• "สินค้าใกล้หมด" / "ควรสั่งอะไรเพิ่ม"\n• "ควรโฟกัสสินค้าไหน"\nหรือพิมพ์ **"ช่วย"** เพื่อดูทั้งหมดครับ`;
 }
 
 // ══════════════════════════════════════════
