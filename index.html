@@ -3949,6 +3949,14 @@ const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
   {
+    id: 18,
+    title: 'แก้ระบบแจ้งเตือนอัปเดต — badge ขึ้นแน่นอนทุกครั้ง',
+    type: 'fix',
+    date: '2026-06-19',
+    detail: 'เปลี่ยนระบบ notification จาก timestamp เป็น ID-based tracking\n- ก่อนหน้า: badge อาจไม่ขึ้นถ้า timestamp ซ้อนทับกัน\n- ใหม่: ติดตามด้วย ID — entry ใหม่จะขึ้น badge ทันทีทุกครั้ง ไม่ว่าจะ reload เมื่อไหร่\n- บันทึก seen IDs ลง localStorage แทน timestamp',
+    order: 0,
+  },
+  {
     id: 17,
     title: 'อัปเกรดแชทบอท — ตอบคำถามราคา กำไร และแนะนำสินค้า',
     type: 'feature',
@@ -5256,25 +5264,24 @@ function escHtml(str) {
 // ══════════════════════════════════════════
 let updateNotifPending = [];
 
-function getLastSeenUpdate() {
-  return parseInt(localStorage.getItem('pos_last_seen_update') || '0');
+function getSeenIds() {
+  return new Set(JSON.parse(localStorage.getItem('pos_seen_cl_ids') || '[]'));
 }
 
-function setLastSeenUpdate(ts) {
-  localStorage.setItem('pos_last_seen_update', String(ts));
+function saveSeenIds(set) {
+  localStorage.setItem('pos_seen_cl_ids', JSON.stringify([...set]));
 }
 
 function checkForNewUpdates() {
-  const lastSeen = getLastSeenUpdate();
-  const newUpdates = changelogs.filter(cl => cl.createdAt && cl.createdAt > lastSeen);
+  const seen = getSeenIds();
+  const newUpdates = changelogs.filter(cl => {
+    const id = String(cl.fbKey || cl.id || '');
+    return id && !seen.has(id);
+  });
   updateNotifPending = newUpdates;
   updateChangelogBadge(newUpdates.length);
-  if (newUpdates.length > 0 && lastSeen > 0) {
+  if (newUpdates.length > 0) {
     showUpdateNotifPopup(newUpdates);
-  }
-  if (lastSeen === 0 && changelogs.length > 0) {
-    const maxTs = Math.max(...changelogs.map(cl => cl.createdAt || 0));
-    if (maxTs > 0) setLastSeenUpdate(maxTs);
   }
 }
 
@@ -5328,10 +5335,12 @@ function viewUpdateNotif() {
 }
 
 function markUpdatesAsSeen() {
-  if (changelogs.length > 0) {
-    const maxTs = Math.max(...changelogs.map(cl => cl.createdAt || 0));
-    if (maxTs > 0) setLastSeenUpdate(maxTs);
-  }
+  const seen = getSeenIds();
+  changelogs.forEach(cl => {
+    const id = String(cl.fbKey || cl.id || '');
+    if (id) seen.add(id);
+  });
+  saveSeenIds(seen);
   updateNotifPending = [];
   updateChangelogBadge(0);
 }
