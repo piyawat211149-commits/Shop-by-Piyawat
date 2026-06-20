@@ -2824,21 +2824,28 @@ function initFirebaseListeners() {
       DEFAULT_PRODUCTS.forEach(p => { initial[p.id] = p; });
       db.ref('products').set(initial);
     }
-    renderPosGrid();
+    if (document.getElementById('page-pos').classList.contains('active')) renderPosGrid();
     const pg = document.getElementById('page-products');
     if (pg.classList.contains('active')) renderProductTable();
+    setLoading(false);  // โหลดสินค้าเสร็จ = พร้อมใช้งาน
   });
 
   // Categories — realtime
+  let catFirstLoad = true;
   db.ref('categories').on('value', snap => {
     const val = snap.val();
     if (val) {
       categories = Array.isArray(val) ? val : Object.values(val);
       categories.forEach(c => CAT_EMOJI[c.name] = c.emoji);
-    } else {
+    } else if (catFirstLoad) {
+      // ตั้งค่าเริ่มต้นเฉพาะครั้งแรกที่ Firebase ว่างจริงๆ
       db.ref('categories').set(DEFAULT_CATS);
     }
-    renderPosGrid();
+    // อย่า reset ถ้า val=null หลัง first load (อาจเป็น network กระตุก)
+    catFirstLoad = false;
+    // render เฉพาะหน้าที่เปิดอยู่
+    if (document.getElementById('page-pos').classList.contains('active')) renderPosGrid();
+    if (document.getElementById('cat-modal').classList.contains('open')) renderCatManageList();
   });
 
   // Sales — realtime
@@ -2850,7 +2857,6 @@ function initFirebaseListeners() {
   });
 
   fbReady = true;
-  setLoading(false);
 }
 
 // Start listeners
@@ -3949,6 +3955,14 @@ const CL_TYPE_LABEL = { fix:'🔧 แก้ไขปัญหา', feature:'✨ 
 const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 20,
+    title: 'แก้ Firebase listener ป้องกันค้าง/ช้าบางเครื่อง',
+    type: 'fix',
+    date: '2026-06-20',
+    detail: 'แก้ 3 บั๊กใน Firebase listener ที่ทำให้บางเครื่องช้าหรือค้าง\n- renderPosGrid() เรียกทุกครั้งที่ categories เปลี่ยนโดยไม่เช็คหน้า → แก้ให้ render เฉพาะหน้าที่เปิดอยู่\n- Firebase val=null (network กระตุก) ทำให้ลบ categories แล้วเขียน DEFAULT ทับ → แก้ให้ reset เฉพาะ first load\n- setLoading(false) เรียกก่อนข้อมูลมาจริง → ย้ายไปอยู่ใน products listener',
+    order: 0,
+  },
   {
     id: 19,
     title: 'แก้ดีเลย์เพิ่ม/ลบ/แก้หมวดหมู่',
