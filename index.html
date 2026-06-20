@@ -3644,16 +3644,17 @@ async function addCategory() {
   if(!name) { showToast('กรุณากรอกชื่อหมวดหมู่','error'); return; }
   if(categories.find(c=>c.name===name)) { showToast('หมวดหมู่นี้มีอยู่แล้ว','error'); return; }
   categories.push({name, emoji});
+  CAT_EMOJI[name] = emoji;
   document.getElementById('new-cat-input').value='';
   document.getElementById('new-cat-emoji').value='';
-  await save();
-  renderCatManageList();
+  renderCatManageList();  // อัปเดต UI ทันที ไม่รอ Firebase
   showToast(`เพิ่มหมวดหมู่ "${name}" แล้ว ✓`,'success');
+  save();  // บันทึก background
 }
 
 async function updateCatEmoji(i, val) {
   categories[i].emoji = val||'📦';
-  await save();
+  save();  // background
 }
 
 async function updateCatName(i, val) {
@@ -3664,9 +3665,9 @@ async function updateCatName(i, val) {
   categories[i].name = newName;
   const affected = products.filter(p=>p.cat===oldName);
   affected.forEach(p=>{ p.cat=newName; });
-  await save();
-  await Promise.all(affected.map(p => saveOneProduct(p)));
-  showToast('แก้ไขหมวดหมู่แล้ว ✓','success');
+  showToast('แก้ไขหมวดหมู่แล้ว ✓','success');  // แสดงทันที
+  save();  // background
+  Promise.all(affected.map(p => saveOneProduct(p)));  // background
 }
 
 async function deleteCategory(i) {
@@ -3677,10 +3678,10 @@ async function deleteCategory(i) {
   affected.forEach(p=>{ p.cat='อื่นๆ'; });
   categories.splice(i,1);
   if(!categories.find(c=>c.name==='อื่นๆ') && count>0) categories.push({name:'อื่นๆ',emoji:'📦'});
-  await save();
-  await Promise.all(affected.map(p => saveOneProduct(p)));
-  if (!db) renderCatManageList();
+  renderCatManageList();  // อัปเดต UI ทันที
   showToast('ลบหมวดหมู่แล้ว','error');
+  save();  // background
+  Promise.all(affected.map(p => saveOneProduct(p)));  // background
 }
 
 // ══════════════════════════════════════════
@@ -3948,6 +3949,14 @@ const CL_TYPE_LABEL = { fix:'🔧 แก้ไขปัญหา', feature:'✨ 
 const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 19,
+    title: 'แก้ดีเลย์เพิ่ม/ลบ/แก้หมวดหมู่',
+    type: 'fix',
+    date: '2026-06-20',
+    detail: 'แก้ปัญหาหมวดหมู่ดีเลย์หลังกดเพิ่ม/ลบ/แก้ไข\n- เปลี่ยนจาก await Firebase แล้วค่อย render → render UI ทันทีก่อน แล้วบันทึก Firebase ใน background\n- ครอบคลุมทั้ง addCategory, updateCatEmoji, updateCatName, deleteCategory\n- ผู้ใช้เห็นผลทันทีไม่ต้องรอ network',
+    order: 0,
+  },
   {
     id: 18,
     title: 'แก้ระบบแจ้งเตือนอัปเดต — badge ขึ้นแน่นอนทุกครั้ง',
