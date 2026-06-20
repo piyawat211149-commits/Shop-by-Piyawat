@@ -2904,7 +2904,7 @@ function renderCatFilter() {
   ).join('');
 }
 
-function setCat(c) { posCategory = c; renderCatFilter(); renderPosGrid(); }
+function setCat(c) { posCategory = c; renderPosGrid(); }
 
 function renderPosGrid() {
   renderCatFilter();
@@ -3594,20 +3594,20 @@ async function saveProduct() {
 
   if(editId) {
     const idx = products.findIndex(x=>x.id===editId);
-    if(idx>-1) {
-      products[idx] = {...products[idx], ...data};
-      await saveOneProduct(products[idx]);
-    }
+    if(idx>-1) products[idx] = {...products[idx], ...data};
+    closeProdModal();
+    renderProductTable();
     showToast('อัปเดตสินค้าแล้ว ✓','success');
+    saveOneProduct(products.find(x=>x.id===editId)); // background
   } else {
     const newProd = {id: nextId++, ...data};
     products.push(newProd);
-    await saveOneProduct(newProd);
+    closeProdModal();
+    renderProductTable();
     showToast('เพิ่มสินค้าแล้ว ✓','success');
+    saveOneProduct(newProd); // background
   }
-  await save(); // save categories if changed
-  closeProdModal();
-  if (!db) renderProductTable();
+  save(); // background
 }
 
 async function deleteProduct(id) {
@@ -3955,6 +3955,14 @@ const CL_TYPE_LABEL = { fix:'🔧 แก้ไขปัญหา', feature:'✨ 
 const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 21,
+    title: 'แก้ดีเลย์เลือกหมวดหมู่และบันทึกสินค้า',
+    type: 'fix',
+    date: '2026-06-20',
+    detail: 'แก้ 2 จุดที่ทำให้ POS ช้า\n- เลือกหมวดหมู่: renderCatFilter() ถูกเรียกซ้ำ 2 รอบต่อคลิก → ลดเหลือ 1 รอบ\n- บันทึกสินค้า: await Firebase 2 ครั้งก่อนปิด modal → ปิด modal + แสดง toast ทันที บันทึก Firebase ใน background',
+    order: 0,
+  },
   {
     id: 20,
     title: 'แก้ Firebase listener ป้องกันค้าง/ช้าบางเครื่อง',
