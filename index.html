@@ -1448,6 +1448,27 @@
     gap: 6px;
     flex-wrap: wrap;
   }
+  .cat-chip {
+    display: inline-block;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: var(--sans);
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--text-2);
+    transition: border-color 0.1s, background 0.1s, color 0.1s;
+  }
+  .cat-chip.selected {
+    border-color: var(--primary);
+    background: var(--primary-pale);
+    color: var(--primary);
+  }
+
   .chat-chip {
     background: var(--primary-pale);
     color: var(--primary);
@@ -1529,8 +1550,8 @@
   @media (max-width: 768px) {
     /* ── Layout ── */
     .pos-layout { grid-template-columns: 1fr; }
-    .page { padding: 14px 12px 80px; }
-    .product-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    .page { padding: 14px 12px 130px; }
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: none; overflow-y: visible; padding-right: 0; }
     .form-row { grid-template-columns: 1fr; }
     .page-header { flex-wrap: wrap; }
     .page-title { font-size: 18px; }
@@ -2148,7 +2169,7 @@
       <div class="search-bar">
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
-          <input type="text" id="pos-search" placeholder="ค้นหาสินค้า..." oninput="renderPosGrid()">
+          <input type="text" id="pos-search" placeholder="ค้นหาสินค้า..." oninput="debouncedRenderPosGrid()">
         </div>
         <button class="barcode-btn" onclick="openScanner()" title="สแกนบาร์โค้ด">📷</button>
       </div>
@@ -2750,6 +2771,28 @@ let lastReceiptHtml = '';
 let posCategory = 'ทั้งหมด';
 let fbReady = false;
 
+// ── Performance: product lookup map & render debounce ──
+const productMap = new Map();
+function rebuildProductMap() { productMap.clear(); products.forEach(p => productMap.set(p.id, p)); }
+rebuildProductMap();
+function getProduct(id) { return productMap.get(id); }
+
+let _renderPosGridTimer = 0;
+function debouncedRenderPosGrid() {
+  cancelAnimationFrame(_renderPosGridTimer);
+  _renderPosGridTimer = requestAnimationFrame(renderPosGrid);
+}
+let _renderProdTableTimer = 0;
+function debouncedRenderProductTable() {
+  cancelAnimationFrame(_renderProdTableTimer);
+  _renderProdTableTimer = requestAnimationFrame(renderProductTable);
+}
+let _renderCartTimer = 0;
+function debouncedRenderCart() {
+  cancelAnimationFrame(_renderCartTimer);
+  _renderCartTimer = requestAnimationFrame(renderCart);
+}
+
 // ══════════════════════════════════════════
 //  FIREBASE SYNC
 // ══════════════════════════════════════════
@@ -2811,23 +2854,25 @@ function initFirebaseListeners() {
     if (val) {
       products = Object.values(val);
       nextId = products.length ? Math.max(...products.map(p=>p.id||0)) + 1 : 1;
-      // Auto-fill missing barcodes
+      rebuildProductMap();
+      // Auto-fill missing barcodes (batch to avoid listener cascade)
+      const barcodeUpdates = {};
       products.forEach(p => {
         if (!p.barcode) {
           p.barcode = genBarcode();
-          db.ref('products/' + p.id + '/barcode').set(p.barcode);
+          barcodeUpdates['products/' + p.id + '/barcode'] = p.barcode;
         }
       });
+      if (Object.keys(barcodeUpdates).length) db.ref().update(barcodeUpdates);
     } else {
-      // Initialize Firebase with default products keyed by ID
       const initial = {};
       DEFAULT_PRODUCTS.forEach(p => { initial[p.id] = p; });
       db.ref('products').set(initial);
     }
-    if (document.getElementById('page-pos').classList.contains('active')) renderPosGrid();
+    if (document.getElementById('page-pos').classList.contains('active')) debouncedRenderPosGrid();
     const pg = document.getElementById('page-products');
-    if (pg.classList.contains('active')) renderProductTable();
-    setLoading(false);  // โหลดสินค้าเสร็จ = พร้อมใช้งาน
+    if (pg.classList.contains('active')) debouncedRenderProductTable();
+    setLoading(false);
   });
 
   // Categories — realtime
@@ -2843,8 +2888,7 @@ function initFirebaseListeners() {
     }
     // อย่า reset ถ้า val=null หลัง first load (อาจเป็น network กระตุก)
     catFirstLoad = false;
-    // render เฉพาะหน้าที่เปิดอยู่
-    if (document.getElementById('page-pos').classList.contains('active')) renderPosGrid();
+    if (document.getElementById('page-pos').classList.contains('active')) debouncedRenderPosGrid();
     if (document.getElementById('cat-modal').classList.contains('open')) renderCatManageList();
   });
 
@@ -2868,6 +2912,7 @@ if (fbConfigured) {
   categories = JSON.parse(localStorage.getItem('pos_cats') || 'null') || DEFAULT_CATS;
   categories.forEach(c => CAT_EMOJI[c.name] = c.emoji);
   products   = JSON.parse(localStorage.getItem('pos_products') || 'null') || DEFAULT_PRODUCTS;
+  rebuildProductMap();
   nextId     = products.length ? Math.max(...products.map(p=>p.id||0)) + 1 : 1;
   sales      = JSON.parse(localStorage.getItem('pos_sales')    || '[]');
 }
@@ -2897,14 +2942,32 @@ function getCategories() {
   return ['ทั้งหมด', ...cats];
 }
 
+let _lastCatListKey = '';
 function renderCatFilter() {
+  const cats = getCategories();
+  const key = cats.join('|');
   const wrap = document.getElementById('cat-filter');
-  wrap.innerHTML = getCategories().map(c =>
+  if (key === _lastCatListKey) {
+    wrap.querySelectorAll('.cat-btn').forEach(btn =>
+      btn.classList.toggle('active', btn.textContent.trim() === posCategory)
+    );
+    return;
+  }
+  _lastCatListKey = key;
+  wrap.innerHTML = cats.map(c =>
     `<button class="cat-btn ${c===posCategory?'active':''}" onclick="setCat('${c}')">${c}</button>`
   ).join('');
 }
 
-function setCat(c) { posCategory = c; renderPosGrid(); }
+let _setCatTimer = 0;
+function setCat(c) {
+  posCategory = c;
+  document.querySelectorAll('#cat-filter .cat-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.textContent.trim() === c)
+  );
+  clearTimeout(_setCatTimer);
+  _setCatTimer = setTimeout(renderPosGrid, 150);
+}
 
 function renderPosGrid() {
   renderCatFilter();
@@ -2912,7 +2975,7 @@ function renderPosGrid() {
   const grid = document.getElementById('pos-grid');
   let list = products.filter(p => {
     const matchCat = posCategory==='ทั้งหมด' || p.cat===posCategory;
-    const matchQ = !q || p.name.toLowerCase().includes(q) || p.barcode.includes(q);
+    const matchQ = !q || p.name.toLowerCase().includes(q) || (p.barcode||'').includes(q);
     return matchCat && matchQ;
   });
   if(!list.length) {
@@ -2931,7 +2994,7 @@ function renderPosGrid() {
 }
 
 function addToCart(id) {
-  const p = products.find(x=>x.id===id);
+  const p = getProduct(id);
   if(!p || p.stock===0) return;
   const item = cart.find(x=>x.id===id);
   if(item) {
@@ -2940,7 +3003,7 @@ function addToCart(id) {
   } else {
     cart.push({id, name:p.name, price:p.price, cost:p.cost, qty:1, brand:p.brand||'', size:p.size||'', barcode:p.barcode||'', unit:p.unit||'ชิ้น', emoji:p.emoji||''});
   }
-  renderCart();
+  debouncedRenderCart();
   updateCartDrawer();
   showToast(`เพิ่ม ${p.name} ✓`, 'success');
 }
@@ -2948,18 +3011,18 @@ function addToCart(id) {
 function changeQty(id, delta) {
   const item = cart.find(x=>x.id===id);
   if(!item) return;
-  const p = products.find(x=>x.id===id);
+  const p = getProduct(id);
   item.qty = Math.max(1, Math.min(item.qty + delta, p.stock));
-  renderCart();
+  debouncedRenderCart();
 }
 
 function setQty(id, val) {
   const item = cart.find(x=>x.id===id);
-  const p = products.find(x=>x.id===id);
+  const p = getProduct(id);
   if(!item) return;
   const n = parseInt(val) || 1;
   item.qty = Math.max(1, Math.min(n, p.stock));
-  renderCart();
+  debouncedRenderCart();
 }
 
 function removeFromCart(id) {
@@ -3024,6 +3087,13 @@ function receiptItemHtml(i) {
   return h;
 }
 
+function openOverlay(id) {
+  const el = document.getElementById(id);
+  el.classList.add('open');
+  const inner = el.querySelector('.modal, .health-panel-body');
+  if (inner) inner.scrollTop = 0;
+}
+
 function openPayModal() {
   if(!cart.length) return;
   const total = cart.reduce((s,i)=>s+i.price*i.qty, 0);
@@ -3040,7 +3110,7 @@ function openPayModal() {
   document.getElementById('cash-received').value = '';
   document.getElementById('change-amount').textContent = '-';
   document.getElementById('confirm-btn').disabled = payMethod === 'cash';
-  document.getElementById('pay-modal').classList.add('open');
+  openOverlay('pay-modal');
 }
 function closePayModal() { document.getElementById('pay-modal').classList.remove('open'); }
 
@@ -3063,6 +3133,10 @@ function calcChange() {
 }
 
 async function confirmPayment() {
+  const confirmBtn = document.getElementById('confirm-btn');
+  if (confirmBtn.disabled) return;
+  confirmBtn.disabled = true;
+
   const total = cart.reduce((s,i)=>s+i.price*i.qty, 0);
   const profit = cart.reduce((s,i)=>s+(i.price-i.cost)*i.qty, 0);
   const received = parseFloat(document.getElementById('cash-received').value)||total;
@@ -3078,7 +3152,7 @@ async function confirmPayment() {
     ));
   } else {
     cart.forEach(item => {
-      const p = products.find(x=>x.id===item.id);
+      const p = getProduct(item.id);
       if(p) p.stock = Math.max(0, p.stock - item.qty);
     });
     localStorage.setItem('pos_products', JSON.stringify(products));
@@ -3117,7 +3191,7 @@ async function confirmPayment() {
   renderPosGrid();
 
   document.getElementById('success-receipt').innerHTML = rHtml;
-  document.getElementById('success-modal').classList.add('open');
+  openOverlay('success-modal');
 }
 
 function closeSuccessModal() { document.getElementById('success-modal').classList.remove('open'); }
@@ -3171,7 +3245,7 @@ let scannerCooldown = false;
 let scannerRunning = false;
 
 function openScanner() {
-  document.getElementById('scanner-modal').classList.add('open');
+  openOverlay('scanner-modal');
   document.getElementById('scanner-result').style.display = 'none';
   document.getElementById('scanner-status').textContent = '';
   document.getElementById('scanner-status').className = 'scanner-status';
@@ -3472,9 +3546,16 @@ function buildCatSelect(selectedCat) {
 
 function renderCatChips(selectedCat) {
   const wrap = document.getElementById('cat-chips');
-  wrap.innerHTML = categories.map(c =>
-    `<span onclick="selectCatChip('${c.name}')" style="cursor:pointer;padding:4px 12px;border-radius:20px;font-size:13px;border:2px solid ${c.name===selectedCat?'var(--primary)':'var(--border)'};background:${c.name===selectedCat?'var(--primary-pale)':'var(--surface)'};color:${c.name===selectedCat?'var(--primary)':'var(--text-2)'};">${c.emoji} ${c.name}</span>`
-  ).join('');
+  const key = categories.map(c => c.name + c.emoji).join('|');
+  if (wrap.dataset.chipKey !== key) {
+    wrap.dataset.chipKey = key;
+    wrap.innerHTML = categories.map(c =>
+      `<span class="cat-chip" onclick="selectCatChip('${c.name}')" data-chip="${c.name}">${c.emoji} ${c.name}</span>`
+    ).join('');
+  }
+  wrap.querySelectorAll('.cat-chip').forEach(s => {
+    s.classList.toggle('selected', s.dataset.chip === selectedCat);
+  });
 }
 
 function selectCatChip(name) {
@@ -3515,11 +3596,11 @@ function openAddProduct() {
   buildCatSelect(categories[0]?.name);
   document.getElementById('f-cat-custom').style.display = 'none';
   renderCatChips(categories[0]?.name);
-  document.getElementById('prod-modal').classList.add('open');
+  openOverlay('prod-modal');
 }
 
 function openEditProduct(id) {
-  const p = products.find(x=>x.id===id);
+  const p = getProduct(id);
   if(!p) return;
   document.getElementById('prod-modal-title').textContent = '✏️ แก้ไขสินค้า';
   document.getElementById('edit-id').value = id;
@@ -3548,25 +3629,32 @@ function openEditProduct(id) {
   buildCatSelect(p.cat);
   document.getElementById('f-cat-custom').style.display = 'none';
   renderCatChips(p.cat);
-  document.getElementById('prod-modal').classList.add('open');
+  openOverlay('prod-modal');
 }
 
 function closeProdModal() { document.getElementById('prod-modal').classList.remove('open'); }
 
 async function saveProduct() {
+  const btn = document.querySelector('#prod-modal .btn-confirm');
+  if (btn.disabled) return;
+
   const name = document.getElementById('f-name').value.trim();
   const price = parseFloat(document.getElementById('f-price').value);
   if(!name) { showToast('กรุณากรอกชื่อสินค้า','error'); return; }
   if(isNaN(price)||price<0) { showToast('กรุณากรอกราคาขาย','error'); return; }
 
+  btn.disabled = true;
+
   // Resolve category
   let cat = document.getElementById('f-cat').value;
+  let catChanged = false;
   if(cat === '__new__') {
     const customCat = document.getElementById('f-cat-custom').value.trim();
-    if(!customCat) { showToast('กรุณากรอกชื่อหมวดหมู่ใหม่','error'); return; }
+    if(!customCat) { showToast('กรุณากรอกชื่อหมวดหมู่ใหม่','error'); btn.disabled = false; return; }
     cat = customCat;
     if(!categories.find(c=>c.name===cat)) {
       categories.push({name: cat, emoji: '📦'});
+      catChanged = true;
     }
   }
 
@@ -3592,32 +3680,36 @@ async function saveProduct() {
     note: document.getElementById('f-note').value.trim(),
   };
 
+  closeProdModal();
+
   if(editId) {
     const idx = products.findIndex(x=>x.id===editId);
     if(idx>-1) products[idx] = {...products[idx], ...data};
-    closeProdModal();
+    rebuildProductMap();
     renderProductTable();
     showToast('อัปเดตสินค้าแล้ว ✓','success');
-    saveOneProduct(products.find(x=>x.id===editId)); // background
+    saveOneProduct(getProduct(editId)); // background
   } else {
     const newProd = {id: nextId++, ...data};
     products.push(newProd);
-    closeProdModal();
+    rebuildProductMap();
     renderProductTable();
     showToast('เพิ่มสินค้าแล้ว ✓','success');
     saveOneProduct(newProd); // background
   }
-  save(); // background
+  if (catChanged) save(); // background — only when categories actually changed
+  btn.disabled = false;
 }
 
 async function deleteProduct(id) {
-  const p = products.find(x=>x.id===id);
+  const p = getProduct(id);
   if(!p) return;
   if(!confirm(`ลบสินค้า "${p.name}" ออกจากระบบ?`)) return;
   products = products.filter(x=>x.id!==id);
-  await deleteOneProduct(id);
-  if (!db) renderProductTable();
+  rebuildProductMap();
+  renderProductTable();
   showToast('ลบสินค้าแล้ว','error');
+  deleteOneProduct(id);
 }
 
 // ══════════════════════════════════════════
@@ -3625,7 +3717,7 @@ async function deleteProduct(id) {
 // ══════════════════════════════════════════
 function openCatModal() {
   renderCatManageList();
-  document.getElementById('cat-modal').classList.add('open');
+  openOverlay('cat-modal');
 }
 function closeCatModal() { document.getElementById('cat-modal').classList.remove('open'); buildCatSelect(document.getElementById('f-cat').value); }
 
@@ -3752,7 +3844,7 @@ function closeDayDetail() {
 }
 
 function renderCalendar() {
-  const dayMap = getSalesByDay(sales);
+  const dayMap = getCachedDayMap();
   const today  = getDayKey(new Date());
   const firstDay = new Date(reportYear, reportMonth, 1).getDay();
   const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
@@ -3783,7 +3875,7 @@ function renderCalendar() {
 }
 
 function renderDayDetail(key) {
-  const dayMap  = getSalesByDay(sales);
+  const dayMap  = getCachedDayMap();
   const data    = dayMap[key];
   const panel   = document.getElementById('day-detail-panel');
 
@@ -3821,7 +3913,7 @@ function renderDayDetail(key) {
 }
 
 function renderMiniChart() {
-  const dayMap = getSalesByDay(sales);
+  const dayMap = getCachedDayMap();
   const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
   const today = getDayKey(new Date());
 
@@ -3845,9 +3937,21 @@ function renderMiniChart() {
   }).join('');
 }
 
+let _cachedDayMap = null;
+let _cachedDayMapKey = '';
+
+function getCachedDayMap() {
+  const key = sales.length + '_' + (sales[sales.length-1]?.id || '');
+  if (_cachedDayMapKey !== key) {
+    _cachedDayMap = getSalesByDay(sales);
+    _cachedDayMapKey = key;
+  }
+  return _cachedDayMap;
+}
+
 function renderReport() {
   renderStockAlerts();
-  const dayMap = getSalesByDay(sales);
+  const dayMap = getCachedDayMap();
 
   // Month stats
   const monthSales = sales.filter(s => {
@@ -3955,6 +4059,70 @@ const CL_TYPE_LABEL = { fix:'🔧 แก้ไขปัญหา', feature:'✨ 
 const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 29,
+    title: 'แก้ chip หมวดหมู่ใน modal ค้างบน iOS — touch-action + CSS class',
+    type: 'fix',
+    date: '2026-06-26',
+    detail: 'แก้ 3 ปัญหาที่ทำให้กด chip หมวดหมู่ใน modal เพิ่ม/แก้ไขสินค้าแล้วค้างบน iPhone\n1. ไม่มี touch-action: manipulation → iOS รอ 300ms ก่อนยิง click เพื่อดูว่าจะ scroll\n2. ตั้ง 3 inline style ต่อ chip (border/background/color) → trigger style recalculation แยกกัน\n3. ใช้ <span> ไม่มี interactive semantics → iOS ไม่ optimize touch handling\nแก้: เพิ่ม CSS class .cat-chip พร้อม touch-action + -webkit-tap-highlight-color แล้วสลับ .selected class แทนตั้ง inline style ทีละ property',
+    order: 0,
+  },
+  {
+    id: 28,
+    title: 'แก้กดหมวดหมู่ใน modal สินค้าแล้วค้าง',
+    type: 'fix',
+    date: '2026-06-26',
+    detail: 'แก้บั๊กกดเลือกหมวดหมู่ใน modal เพิ่ม/แก้ไขสินค้าแล้วเว็บค้าง\n- สาเหตุ: selectCatChip() เรียก renderCatChips() ซึ่ง rebuild innerHTML ของทุก chip ใหม่ทั้งหมดทุกครั้ง → DOM mutation แพงมากบนมือถือ\n- แก้: renderCatChips() เช็ค key ก่อน ถ้า list ไม่เปลี่ยนให้แค่อัปเดต style บน element เดิม ไม่ต้อง rebuild DOM',
+    order: 0,
+  },
+  {
+    id: 27,
+    title: 'แก้ modal เปิดมาแล้วเห็นแค่ครึ่งล่าง — reset scroll',
+    type: 'fix',
+    date: '2026-06-26',
+    detail: 'แก้บั๊กที่ modal เปิดมาแล้วส่วนบนว่างเปล่า เห็นแค่ field ล่างๆ\n- สาเหตุ: browser เก็บ scrollTop ของ .modal div ไว้ระหว่างปิด เมื่อเปิดใหม่จะ restore scroll position เดิม ทำให้เริ่มต้นที่กลาง/ล่างแทนบนสุด\n- แก้: เพิ่ม openOverlay() helper ที่ reset scrollTop = 0 ทุกครั้งที่เปิด ครอบคลุมทุก modal ในแอป (pay, success, scanner, prod, cat, changelog, health)',
+    order: 0,
+  },
+  {
+    id: 26,
+    title: 'แก้ renderCatFilter rebuild ทุกครั้ง — หน้าเด้ง/popup หาย',
+    type: 'fix',
+    date: '2026-06-26',
+    detail: 'แก้ 2 ปัญหาที่ทำให้มือถือค้างและ popup/content หายหลังเลือกหมวดหมู่\n- renderPosGrid() เรียก renderCatFilter() ทุกครั้ง → สร้าง DOM ใหม่ทั้ง category buttons แม้ list ไม่เปลี่ยน\n- การ rebuild buttons กลางหน้า → browser reset scroll anchor → หน้าเด้งขึ้นบน → popup/สินค้าหาย\n- แก้: renderCatFilter() เช็ค key ก่อน ถ้า list ไม่เปลี่ยนให้แค่สลับ active class แทนการ rebuild ทั้งหมด',
+    order: 0,
+  },
+  {
+    id: 25,
+    title: 'แก้เลือกหมวดหมู่บนมือถือค้าง + popup ไม่แสดง',
+    type: 'fix',
+    date: '2026-06-26',
+    detail: 'แก้บั๊ก iOS ที่ทำให้กดหมวดหมู่แล้วค้าง และ popup/สินค้าไม่แสดงจนกว่าจะ scroll\n- สาเหตุ: product-grid มี overflow-y: auto + max-height บนมือถือ → สร้าง nested scroll container → iOS ไม่ repaint หลัง innerHTML ถูก replace\n- แก้: บนมือถือ ปิด max-height และ overflow ของ grid → ให้ page เองเป็นตัว scroll\n- เพิ่ม bottom padding ของ page เป็น 130px เพื่อให้เนื้อหาพ้น bottom nav + cart handle',
+    order: 0,
+  },
+  {
+    id: 24,
+    title: 'แก้กดหมวดหมู่รัวๆแล้วเว็บค้าง — debounce setCat',
+    type: 'fix',
+    date: '2026-06-26',
+    detail: 'แก้ปัญหาเลือกหมวดหมู่รัวๆแล้วเว็บค้าง\n- setCat() เดิมเรียก renderPosGrid() ตรงๆ ทุกคลิก → สร้าง DOM ใหม่ทั้งหมดทุกครั้ง\n- แก้ให้ update active class ทันที (visual feedback) แล้ว debounce 150ms ก่อน render grid จริง\n- กดเร็วแค่ไหนก็ render แค่ 1 ครั้งหลังหยุดกด',
+    order: 0,
+  },
+  {
+    id: 23,
+    title: 'ตรวจและแก้จุดค้างทั้งระบบ — 6 จุด',
+    type: 'fix',
+    date: '2026-06-25',
+    detail: 'ตรวจโค้ดทั้งไฟล์แล้วแก้ 6 จุดที่อาจทำให้ค้าง/ช้า\n1. renderPosGrid() พังถ้าสินค้าไม่มี barcode → เพิ่ม fallback\n2. getSalesByDay() ถูกเรียกซ้ำ 3-4 ครั้งตอนเปิดรายงาน → เปลี่ยนเป็น cache\n3. confirmPayment() กดซ้ำได้ หักสต็อกซ้ำ → disable ปุ่มระหว่างจ่าย\n4. saveChangelog() ใช้ await รอ Firebase ก่อนปิด modal → ปิด modal ทันที\n5. deleteChangelog() ใช้ await → เปลี่ยนเป็น background\n6. deleteProduct() ใช้ await → render ทันที ลบ Firebase background',
+    order: 0,
+  },
+  {
+    id: 22,
+    title: 'แก้บันทึกสินค้าค้าง — debounce + ป้องกันกดซ้ำ',
+    type: 'fix',
+    date: '2026-06-25',
+    detail: 'แก้ 3 จุดที่ทำให้กดบันทึกสินค้าแล้วค้าง\n- เพิ่ม debounce ให้ renderProductTable() ใน Firebase listener → เรียกซ้ำกี่ครั้งก็ render แค่ 1 ครั้งต่อ frame\n- เรียก save() เฉพาะเมื่อหมวดหมู่เปลี่ยน → ลด Firebase write ที่ไม่จำเป็น\n- ปิดปุ่มบันทึกระหว่างทำงาน → ป้องกันกดซ้ำหลายครั้ง',
+    order: 0,
+  },
   {
     id: 21,
     title: 'แก้ดีเลย์เลือกหมวดหมู่และบันทึกสินค้า',
@@ -4254,7 +4422,7 @@ function openAddChangelog() {
   document.getElementById('cl-type').value = 'fix';
   document.getElementById('cl-detail').value = '';
   document.getElementById('cl-date').value = new Date().toISOString().slice(0,10);
-  document.getElementById('changelog-modal').classList.add('open');
+  openOverlay('changelog-modal');
 }
 
 function openEditChangelog(key) {
@@ -4266,7 +4434,7 @@ function openEditChangelog(key) {
   document.getElementById('cl-type').value = cl.type;
   document.getElementById('cl-detail').value = cl.detail || '';
   document.getElementById('cl-date').value = cl.date || '';
-  document.getElementById('changelog-modal').classList.add('open');
+  openOverlay('changelog-modal');
 }
 
 function closeChangelogModal() {
@@ -4285,11 +4453,14 @@ async function saveChangelog() {
     date:      document.getElementById('cl-date').value,
     createdAt: existing ? existing.createdAt : Date.now(),
   };
+  closeChangelogModal();
+  markUpdatesAsSeen();
+  showToast('บันทึกแล้ว ✓','success');
   if (db) {
     if (editKey) {
-      await db.ref('changelogs/' + editKey).update(data);
+      db.ref('changelogs/' + editKey).update(data);
     } else {
-      await db.ref('changelogs').push(data);
+      db.ref('changelogs').push(data);
     }
   } else {
     if (editKey) {
@@ -4301,21 +4472,18 @@ async function saveChangelog() {
     localStorage.setItem('pos_changelogs', JSON.stringify(changelogs));
     renderChangelog();
   }
-  closeChangelogModal();
-  markUpdatesAsSeen();
-  showToast('บันทึกแล้ว ✓','success');
 }
 
 async function deleteChangelog(key) {
   if (!confirm('ลบบันทึกนี้?')) return;
+  showToast('ลบแล้ว','error');
   if (db) {
-    await db.ref('changelogs/' + key).remove();
+    db.ref('changelogs/' + key).remove();
   } else {
     changelogs = changelogs.filter(c => (c.fbKey||c.id) != key);
     localStorage.setItem('pos_changelogs', JSON.stringify(changelogs));
     renderChangelog();
   }
-  showToast('ลบแล้ว','error');
 }
 
 // ══════════════════════════════════════════
@@ -4341,7 +4509,7 @@ function toggleDrawerMenu() {
 }
 
 function openHealthPanel() {
-  document.getElementById('health-panel-overlay').classList.add('open');
+  openOverlay('health-panel-overlay');
   runHealthCheck();
 }
 function closeHealthPanel() {
