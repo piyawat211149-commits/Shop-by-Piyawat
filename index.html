@@ -149,9 +149,11 @@
     border-radius: var(--radius);
     padding: 14px 12px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: border-color 0.15s, background 0.15s, opacity 0.15s;
     text-align: center;
     user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .product-card:hover {
     border-color: var(--primary-light);
@@ -2857,45 +2859,56 @@ function initFirebaseListeners() {
   // Products — realtime (stored as object keyed by product ID)
   db.ref('products').on('value', snap => {
     const val = snap.val();
-    if (val) {
-      products = Object.values(val);
-      nextId = products.length ? Math.max(...products.map(p=>p.id||0)) + 1 : 1;
-      rebuildProductMap();
-      // Auto-fill missing barcodes (batch to avoid listener cascade)
-      const barcodeUpdates = {};
-      products.forEach(p => {
-        if (!p.barcode) {
-          p.barcode = genBarcode();
-          barcodeUpdates['products/' + p.id + '/barcode'] = p.barcode;
-        }
-      });
-      if (Object.keys(barcodeUpdates).length) db.ref().update(barcodeUpdates);
-    } else {
-      const initial = {};
-      DEFAULT_PRODUCTS.forEach(p => { initial[p.id] = p; });
-      db.ref('products').set(initial);
-    }
-    if (document.getElementById('page-pos').classList.contains('active')) debouncedRenderPosGrid();
-    const pg = document.getElementById('page-products');
-    if (pg.classList.contains('active')) debouncedRenderProductTable();
-    setLoading(false);
+    // setTimeout(0) ยกการประมวลผลหนักออกจาก main thread — ป้องกัน UI freeze ขณะ user โต้ตอบ
+    setTimeout(() => {
+      if (val) {
+        products = Object.values(val);
+        nextId = products.reduce((max, p) => Math.max(max, p.id || 0), 0) + 1;
+        rebuildProductMap();
+        const barcodeUpdates = {};
+        products.forEach(p => {
+          if (!p.barcode) {
+            p.barcode = genBarcode();
+            barcodeUpdates['products/' + p.id + '/barcode'] = p.barcode;
+          }
+        });
+        if (Object.keys(barcodeUpdates).length) db.ref().update(barcodeUpdates);
+      } else {
+        const initial = {};
+        DEFAULT_PRODUCTS.forEach(p => { initial[p.id] = p; });
+        db.ref('products').set(initial);
+      }
+      if (document.getElementById('page-pos').classList.contains('active')) debouncedRenderPosGrid();
+      const pg = document.getElementById('page-products');
+      if (pg.classList.contains('active')) debouncedRenderProductTable();
+      setLoading(false);
+    }, 0);
   });
 
   // Categories — realtime
   let catFirstLoad = true;
   db.ref('categories').on('value', snap => {
-    const val = snap.val();
-    if (val) {
-      categories = Array.isArray(val) ? val : Object.values(val);
-      categories.forEach(c => CAT_EMOJI[c.name] = c.emoji);
-    } else if (catFirstLoad) {
-      // ตั้งค่าเริ่มต้นเฉพาะครั้งแรกที่ Firebase ว่างจริงๆ
-      db.ref('categories').set(DEFAULT_CATS);
+    setTimeout(() => {
+      const val = snap.val();
+      if (val) {
+        categories = Array.isArray(val) ? val : Object.values(val);
+        categories.forEach(c => CAT_EMOJI[c.name] = c.emoji);
+      } else if (catFirstLoad) {
+        db.ref('categories').set(DEFAULT_CATS);
+      }
+      catFirstLoad = false;
+      if (document.getElementById('page-pos').classList.contains('active')) debouncedRenderPosGrid();
+      if (document.getElementById('cat-modal').classList.contains('open')) renderCatManageList();
+    }, 0);
+  });
+
+  // ── Firebase connection monitoring ──
+  db.ref('.info/connected').on('value', snap => {
+    const el = document.getElementById('sync-indicator');
+    if (!snap.val() && el) {
+      el.style.display = 'flex';
+      el.innerHTML = '<span style="font-size:12px;">🔴 ออฟไลน์ — กำลังเชื่อมต่อ...</span>';
     }
-    // อย่า reset ถ้า val=null หลัง first load (อาจเป็น network กระตุก)
-    catFirstLoad = false;
-    if (document.getElementById('page-pos').classList.contains('active')) debouncedRenderPosGrid();
-    if (document.getElementById('cat-modal').classList.contains('open')) renderCatManageList();
   });
 
   // Sales — realtime
@@ -3563,8 +3576,12 @@ function renderCatChips(selectedCat) {
   if (wrap.dataset.chipKey !== key) {
     wrap.dataset.chipKey = key;
     wrap.innerHTML = categories.map(c =>
-      `<span class="cat-chip" onclick="selectCatChip('${c.name}')" data-chip="${c.name}">${c.emoji} ${c.name}</span>`
+      `<span class="cat-chip" data-chip="${c.name.replace(/"/g,'&quot;')}">${c.emoji} ${c.name}</span>`
     ).join('');
+    wrap.onclick = function(e) {
+      const chip = e.target.closest('.cat-chip');
+      if (chip) selectCatChip(chip.dataset.chip);
+    };
   }
   wrap.querySelectorAll('.cat-chip').forEach(s => {
     s.classList.toggle('selected', s.dataset.chip === selectedCat);
