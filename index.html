@@ -3111,12 +3111,8 @@ function openOverlay(id) {
   el.classList.add('open');
   const inner = el.querySelector('.modal, .health-panel-body');
   if (inner) inner.scrollTop = 0;
-  document.body.style.overflow = 'hidden';
 }
 function _maybeUnlockBody() {
-  if (!document.querySelector('.modal-overlay.open, .update-notif-overlay.open, .health-panel-overlay.open')) {
-    document.body.style.overflow = '';
-  }
 }
 
 function openPayModal() {
@@ -5552,7 +5548,6 @@ function showUpdateNotifPopup(newUpdates) {
     </div>`).join('') + (newUpdates.length > 5 ? `<div style="text-align:center;padding:6px 0;font-size:12px;color:var(--text-3);">...อีก ${newUpdates.length - 5} รายการ</div>` : '');
 
   document.getElementById('update-notif-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
 }
 
 function dismissUpdateNotif() {
