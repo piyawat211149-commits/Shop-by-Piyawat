@@ -205,6 +205,9 @@
     transition: all 0.15s;
     color: var(--text-2);
     white-space: nowrap;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
   .cat-btn:hover { border-color: var(--primary-light); color: var(--primary); }
   .cat-btn.active {
@@ -3096,36 +3099,11 @@ function openOverlay(id) {
   const inner = el.querySelector('.modal, .health-panel-body');
   if (inner) inner.scrollTop = 0;
   document.body.style.overflow = 'hidden';
-  _bindViewportResize();
 }
 function _maybeUnlockBody() {
   if (!document.querySelector('.modal-overlay.open, .update-notif-overlay.open, .health-panel-overlay.open')) {
     document.body.style.overflow = '';
-    _unbindViewportResize();
-    document.querySelectorAll('.modal-overlay').forEach(function(ov) {
-      ov.style.top = ov.style.left = ov.style.width = ov.style.height = '';
-    });
   }
-}
-function _onViewportResize() {
-  var overlay = document.querySelector('.modal-overlay.open');
-  if (!overlay || !window.visualViewport) return;
-  var vv = window.visualViewport;
-  overlay.style.position = 'fixed';
-  overlay.style.top = vv.offsetTop + 'px';
-  overlay.style.left = vv.offsetLeft + 'px';
-  overlay.style.width = vv.width + 'px';
-  overlay.style.height = vv.height + 'px';
-}
-function _bindViewportResize() {
-  if (!window.visualViewport) return;
-  window.visualViewport.addEventListener('resize', _onViewportResize);
-  window.visualViewport.addEventListener('scroll', _onViewportResize);
-}
-function _unbindViewportResize() {
-  if (!window.visualViewport) return;
-  window.visualViewport.removeEventListener('resize', _onViewportResize);
-  window.visualViewport.removeEventListener('scroll', _onViewportResize);
 }
 
 function openPayModal() {
