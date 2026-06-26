@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ระบบร้านค้า POS</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -1701,6 +1701,7 @@
       max-width: 100% !important;
       width: 100%;
       max-height: calc(100vh - env(safe-area-inset-top, 44px)) !important;
+      max-height: calc(100dvh - env(safe-area-inset-top, 44px)) !important;
       overflow-y: scroll !important;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
@@ -3095,11 +3096,36 @@ function openOverlay(id) {
   const inner = el.querySelector('.modal, .health-panel-body');
   if (inner) inner.scrollTop = 0;
   document.body.style.overflow = 'hidden';
+  _bindViewportResize();
 }
 function _maybeUnlockBody() {
   if (!document.querySelector('.modal-overlay.open, .update-notif-overlay.open, .health-panel-overlay.open')) {
     document.body.style.overflow = '';
+    _unbindViewportResize();
+    document.querySelectorAll('.modal-overlay').forEach(function(ov) {
+      ov.style.top = ov.style.left = ov.style.width = ov.style.height = '';
+    });
   }
+}
+function _onViewportResize() {
+  var overlay = document.querySelector('.modal-overlay.open');
+  if (!overlay || !window.visualViewport) return;
+  var vv = window.visualViewport;
+  overlay.style.position = 'fixed';
+  overlay.style.top = vv.offsetTop + 'px';
+  overlay.style.left = vv.offsetLeft + 'px';
+  overlay.style.width = vv.width + 'px';
+  overlay.style.height = vv.height + 'px';
+}
+function _bindViewportResize() {
+  if (!window.visualViewport) return;
+  window.visualViewport.addEventListener('resize', _onViewportResize);
+  window.visualViewport.addEventListener('scroll', _onViewportResize);
+}
+function _unbindViewportResize() {
+  if (!window.visualViewport) return;
+  window.visualViewport.removeEventListener('resize', _onViewportResize);
+  window.visualViewport.removeEventListener('scroll', _onViewportResize);
 }
 
 function openPayModal() {
