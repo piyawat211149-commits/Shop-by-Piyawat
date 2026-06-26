@@ -648,15 +648,37 @@
   }
   .stat-card {
     background: var(--surface);
-    border-radius: var(--radius);
+    border-radius: 14px;
     padding: 20px;
     box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 14px 14px 0 0;
+  }
+  .stat-card.accent-card::before { background: linear-gradient(90deg, var(--accent), #f0c060); }
+  .stat-card.profit-card::before { background: linear-gradient(90deg, #2D5016, #4A8025); }
+  .stat-card.info-card::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .stat-card .stat-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
   }
   .stat-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); margin-bottom: 8px; }
   .stat-value { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--primary); }
+  .stat-card.accent-card .stat-value { color: #9a6600; }
+  .stat-card.info-card .stat-value { color: #3b82f6; }
   .stat-sub { font-size: 13px; color: var(--text-3); margin-top: 4px; }
 
-  .report-section { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+  .report-section { background: var(--surface); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
   .report-section-header {
     padding: 16px 20px;
     border-bottom: 1px solid var(--border);
@@ -665,60 +687,151 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(45,80,22,0.03), transparent);
   }
   .report-filter { display: flex; gap: 8px; }
   .filter-btn {
-    background: none;
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 5px 12px;
+    border-radius: 8px;
+    padding: 6px 14px;
     font-family: var(--sans);
     font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
     color: var(--text-2);
-    transition: all 0.15s;
+    transition: all 0.2s;
   }
+  .filter-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-pale); }
   .filter-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  .report-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .report-section-title .sec-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    background: var(--primary-pale);
+  }
 
   .sales-log { padding: 0 20px; }
   .log-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--surface2);
+    padding: 14px 16px;
+    margin: 6px 0;
+    border-radius: 10px;
+    background: var(--surface2);
     font-size: 14px;
-    gap: 10px;
+    gap: 12px;
+    transition: background 0.15s;
   }
-  .log-item:last-child { border-bottom: none; }
-  .log-time { font-family: var(--mono); font-size: 12px; color: var(--text-3); min-width: 90px; }
-  .log-desc { flex: 1; color: var(--text-2); }
-  .log-total { font-family: var(--mono); font-weight: 700; color: var(--primary); }
+  .log-item:hover { background: var(--primary-pale); }
+  .log-time {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--surface);
+    background: var(--primary);
+    padding: 3px 8px;
+    border-radius: 6px;
+    min-width: fit-content;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .log-desc { flex: 1; color: var(--text-2); line-height: 1.4; }
+  .log-method {
+    font-size: 18px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface);
+    border-radius: 8px;
+  }
+  .log-total { font-family: var(--mono); font-weight: 700; color: var(--primary); font-size: 15px; }
 
   /* ── BARCODE SCANNER MODAL ── */
-  .scanner-modal { max-width: 360px; text-align: center; }
+  .scanner-modal { max-width: 400px; text-align: center; }
+  .scanner-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .scanner-tab {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 8px 12px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    color: var(--text-3);
+    transition: all 0.2s;
+  }
+  .scanner-tab.active { background: var(--primary); color: #fff; }
   .scanner-box {
     background: #000;
-    border-radius: 10px;
-    height: 200px;
+    border-radius: 12px;
+    height: 280px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: rgba(255,255,255,0.4);
     font-size: 48px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     position: relative;
     overflow: hidden;
   }
-  .scanner-line {
-    position: absolute;
-    width: 80%;
-    height: 2px;
-    background: var(--accent);
-    animation: scan 1.5s ease-in-out infinite;
-  }
-  @keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
+  #scanner-reader { width: 100%; height: 100%; position: relative; }
+  #scanner-reader video { object-fit: cover !important; border-radius: 12px; width: 100% !important; }
+  #scanner-reader img { display: none !important; }
+  #html5-qrcode-anchor-scan-type-change { display: none !important; }
+  #html5-qrcode-button-camera-permission,
+  #html5-qrcode-button-camera-start,
+  #html5-qrcode-button-camera-stop { display: none !important; }
+  #scanner-reader > div:last-child { display: none !important; }
+  .scanner-overlay { display: none; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .scanner-status {
+    font-size: 13px;
+    color: var(--text-3);
+    margin-bottom: 8px;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .scanner-status.success { color: var(--primary); font-weight: 700; }
+  .scanner-status.error { color: var(--danger); }
+  .scanner-result {
+    background: var(--primary-pale);
+    border: 2px solid var(--primary);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+  }
+  .scanner-result .sr-emoji { font-size: 28px; }
+  .scanner-result .sr-info { flex: 1; }
+  .scanner-result .sr-name { font-weight: 700; font-size: 14px; }
+  .scanner-result .sr-detail { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .scanner-result .sr-price { font-family: var(--mono); font-weight: 700; color: var(--primary); font-size: 16px; }
   .barcode-manual-input {
     display: flex;
     gap: 10px;
@@ -779,41 +892,58 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--accent-pale);
+    background: linear-gradient(135deg, #fef3dc, #fff8ec);
     border: 2px solid var(--accent);
-    border-radius: 10px 10px 0 0;
-    padding: 10px 16px;
+    border-radius: 14px 14px 0 0;
+    padding: 14px 18px;
     font-weight: 700;
     font-size: 14px;
     color: #9a6600;
+  }
+  .stock-alert-header span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stock-alert-count {
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
   }
   .stock-alert-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
-    padding: 12px;
+    padding: 14px;
     background: var(--surface);
     border: 2px solid var(--accent);
     border-top: none;
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 14px 14px;
   }
   .stock-alert-card {
     background: var(--surface2);
-    border-radius: 8px;
-    padding: 12px 14px;
+    border-radius: 10px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     border-left: 4px solid var(--accent);
     cursor: pointer;
-    transition: box-shadow 0.15s;
+    transition: all 0.2s;
   }
-  .stock-alert-card:hover { box-shadow: var(--shadow); }
-  .stock-alert-card.empty { border-left-color: var(--danger); }
-  .stock-alert-card .ac-emoji { font-size: 22px; }
+  .stock-alert-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); background: #fff; }
+  .stock-alert-card.empty { border-left-color: var(--danger); background: var(--danger-pale); }
+  .stock-alert-card.empty:hover { background: #fce4e1; }
+  .stock-alert-card .ac-emoji { font-size: 26px; width: 40px; height: 40px; background: var(--surface); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .stock-alert-card.empty .ac-emoji { background: rgba(192,57,43,0.08); }
   .stock-alert-card .ac-info { flex: 1; min-width: 0; }
   .stock-alert-card .ac-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .stock-alert-card .ac-stock { font-family: var(--mono); font-size: 12px; margin-top: 2px; }
+  .stock-alert-card .ac-stock { font-family: var(--mono); font-size: 12px; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
   .stock-alert-card.empty .ac-stock { color: var(--danger); font-weight: 700; }
   .stock-alert-card:not(.empty) .ac-stock { color: #9a6600; }
 
@@ -825,7 +955,14 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--text-3);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    padding: 0 2px;
+  }
+  .cal-grid-head div {
+    padding: 6px 0;
+    background: var(--surface2);
+    border-radius: 6px;
+    margin: 0 1px;
   }
   .cal-grid {
     display: grid;
@@ -833,49 +970,128 @@
     gap: 5px;
   }
   .cal-cell {
-    border-radius: 8px;
-    padding: 6px 4px;
+    border-radius: 10px;
+    padding: 7px 4px;
     text-align: center;
     cursor: pointer;
-    min-height: 62px;
+    min-height: 66px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     gap: 3px;
     border: 2px solid transparent;
-    transition: all 0.15s;
+    transition: all 0.2s;
     background: var(--surface2);
+    position: relative;
   }
-  .cal-cell:hover { border-color: var(--primary-light); background: var(--primary-pale); }
+  .cal-cell:hover { border-color: var(--primary-light); background: var(--primary-pale); transform: scale(1.05); z-index: 1; }
   .cal-cell.empty { background: none; cursor: default; pointer-events: none; }
-  .cal-cell.today { border-color: var(--primary); background: var(--primary-pale); }
-  .cal-cell.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
-  .cal-cell.has-sales { background: #e8f5e0; }
+  .cal-cell.today { border-color: var(--primary); background: var(--primary-pale); box-shadow: 0 0 0 2px rgba(45,80,22,0.15); }
+  .cal-cell.selected { border-color: var(--primary); background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; box-shadow: 0 4px 12px rgba(45,80,22,0.3); transform: scale(1.05); z-index: 1; }
+  .cal-cell.has-sales { background: linear-gradient(to bottom, #e8f5e0, #f0f8e8); }
   .cal-cell.has-sales:hover { background: var(--primary-pale); }
-  .cal-cell.selected.has-sales { background: var(--primary); }
+  .cal-cell.selected.has-sales { background: linear-gradient(135deg, var(--primary), var(--primary-light)); }
   .cal-day-num {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1;
   }
   .cal-cell.selected .cal-day-num { color: #fff; }
-  .cal-cell.today:not(.selected) .cal-day-num { color: var(--primary); }
+  .cal-cell.today:not(.selected) .cal-day-num { color: var(--primary); font-size: 15px; }
   .cal-revenue {
     font-family: var(--mono);
     font-size: 10px;
     font-weight: 600;
     color: var(--primary);
     line-height: 1.2;
+    background: rgba(45,80,22,0.08);
+    border-radius: 4px;
+    padding: 1px 4px;
   }
   .cal-profit {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 9px;
     color: #666;
     line-height: 1.2;
   }
-  .cal-cell.selected .cal-revenue,
-  .cal-cell.selected .cal-profit { color: rgba(255,255,255,0.9); }
+  .cal-cell.selected .cal-revenue { background: rgba(255,255,255,0.2); color: #fff; }
+  .cal-cell.selected .cal-profit { color: rgba(255,255,255,0.85); }
+  .cal-nav-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: var(--text-2);
+    font-weight: 700;
+  }
+  .cal-nav-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* ── MINI CHART ── */
+  .mini-chart-section {
+    margin-bottom: 20px;
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .mini-chart-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(to bottom, rgba(45,80,22,0.03), transparent);
+  }
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    padding: 20px 20px 12px;
+    height: 140px;
+  }
+  .mini-chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .mini-chart-bar {
+    width: 100%;
+    max-width: 32px;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(to top, var(--primary), var(--primary-light));
+    min-height: 3px;
+    transition: height 0.4s ease;
+    position: relative;
+    cursor: pointer;
+  }
+  .mini-chart-bar:hover { opacity: 0.85; }
+  .mini-chart-bar.empty { background: var(--surface2); min-height: 3px; }
+  .mini-chart-bar.today-bar { background: linear-gradient(to top, var(--accent), #f0c060); }
+  .mini-chart-day {
+    font-size: 10px;
+    color: var(--text-3);
+    font-weight: 600;
+  }
+  .mini-chart-val {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-3);
+    font-weight: 600;
+    white-space: nowrap;
+  }
 
   /* ── CHANGELOG ── */
   .changelog-empty {
@@ -1283,11 +1499,11 @@
 
   @media (max-width: 768px) {
     .chat-fab {
-      bottom: 70px;
+      bottom: 130px;
       right: 14px;
-      width: 48px;
-      height: 48px;
-      font-size: 21px;
+      width: 46px;
+      height: 46px;
+      font-size: 20px;
     }
     .chat-panel {
       bottom: 56px;
@@ -1407,6 +1623,7 @@
 
     /* ── Stock alert cards ── */
     .stock-alert-grid { grid-template-columns: 1fr 1fr; }
+    .stock-alert-card .ac-emoji { font-size: 20px; width: 34px; height: 34px; }
 
     /* ── Summary chips ── */
     .prod-summary-strip { gap: 8px; }
@@ -1414,14 +1631,47 @@
     .prod-summary-chip .chip-val { font-size: 16px; }
 
     /* ── Calendar ── */
-    .cal-cell { min-height: 50px; padding: 4px 2px; }
+    .cal-cell { min-height: 48px; padding: 3px 2px; border-radius: 8px; gap: 1px; }
+    .cal-cell:hover { transform: none; }
     .cal-day-num { font-size: 12px; }
-    .cal-revenue, .cal-profit { font-size: 9px; }
-    .cal-grid-head div { font-size: 11px; }
+    .cal-revenue { font-size: 9px; padding: 0 2px; }
+    .cal-profit { display: none; }
+    .cal-grid-head div { font-size: 11px; padding: 4px 0; }
+    .cal-grid { gap: 3px; }
+    .cal-nav-btn { width: 32px; height: 32px; font-size: 14px; }
+    .report-section-header { padding: 12px 14px; font-size: 14px; }
 
     /* ── Report stat cards ── */
-    .report-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat-value { font-size: 20px; }
+    .report-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { padding: 12px; border-radius: 12px; }
+    .stat-card::before { height: 3px; }
+    .stat-card .stat-icon { font-size: 20px; margin-bottom: 4px; }
+    .stat-value { font-size: 18px; }
+    .stat-label { font-size: 10px; margin-bottom: 3px; }
+    .stat-sub { font-size: 11px; }
+
+    /* ── Stock alerts mobile ── */
+    .stock-alert-header { padding: 10px 12px; font-size: 13px; border-radius: 10px 10px 0 0; }
+    .stock-alert-grid { grid-template-columns: 1fr; gap: 6px; padding: 8px; border-radius: 0 0 10px 10px; }
+    .stock-alert-card { padding: 10px 12px; gap: 10px; border-radius: 8px; }
+    .stock-alert-card .ac-emoji { font-size: 18px; width: 34px; height: 34px; border-radius: 8px; }
+    .stock-alert-card .ac-name { font-size: 13px; }
+    .stock-alert-card .ac-stock { font-size: 11px; }
+
+    /* ── Sales log mobile ── */
+    .log-item { padding: 10px 12px; gap: 8px; }
+    .log-time { padding: 2px 6px; font-size: 11px; }
+    .log-method { width: 28px; height: 28px; font-size: 15px; }
+    .log-desc { font-size: 13px; }
+
+    /* ── Mini chart mobile ── */
+    .mini-chart-section { margin-bottom: 12px; }
+    .mini-chart-header { padding: 10px 14px; font-size: 14px; }
+    .mini-chart { height: 100px; padding: 12px 8px 8px; gap: 1px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+    .mini-chart-bar-wrap { min-width: 14px; flex-shrink: 0; }
+    .mini-chart-bar { max-width: 14px; border-radius: 3px 3px 1px 1px; }
+    .mini-chart-val { display: none; }
+    .mini-chart-day { font-size: 7px; }
 
     /* ── Modals full-width bottom-sheet style ── */
     .modal-overlay { align-items: flex-end; padding: 0; }
@@ -1442,6 +1692,8 @@
       margin: 0 auto 16px;
     }
     .scanner-modal { max-width: 100%; }
+    .scanner-box { height: 240px; }
+    .scanner-tab { padding: 10px 8px; font-size: 13px; }
 
     /* ── Pay button bigger ── */
     .pay-btn { padding: 16px; font-size: 18px; }
@@ -1451,13 +1703,412 @@
     .cl-card { flex-wrap: wrap; }
     .cl-date { margin-left: 0; width: 100%; margin-top: 4px; }
   }
+
+  /* ── HAMBURGER MENU + DRAWER ── */
+  .hamburger-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .hamburger-btn:hover { background: rgba(255,255,255,0.15); }
+  .hamburger-btn span:not(.hamburger-dot) {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+  .hamburger-btn.open span:first-child { transform: translateY(7px) rotate(45deg); }
+  .hamburger-btn.open span:nth-child(2) { opacity: 0; }
+  .hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .hamburger-dot {
+    position: absolute !important;
+    top: 2px;
+    right: 2px;
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    background: var(--danger) !important;
+  }
+
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 899;
+  }
+  .drawer-overlay.open { display: block; }
+  .drawer-menu {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 280px;
+    height: 100%;
+    background: var(--surface);
+    z-index: 900;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer-menu.open { left: 0; }
+  .drawer-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .drawer-logo {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  .drawer-title { font-size: 17px; font-weight: 700; }
+  .drawer-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+  .drawer-body { padding: 12px; flex: 1; }
+  .drawer-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 8px 6px;
+  }
+  .drawer-item {
+    width: 100%;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-align: left;
+    font-family: var(--sans);
+  }
+  .drawer-item:hover { background: var(--surface2); }
+  .drawer-item-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--surface2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .drawer-item-text { flex: 1; }
+  .drawer-item-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .drawer-item-desc { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .drawer-health-badge {
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+  }
+  .drawer-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .drawer-info-card {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .drawer-info-num { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--primary); }
+  .drawer-info-label { font-size: 10px; color: var(--text-3); margin-top: 2px; font-weight: 600; }
+
+  /* ── SYSTEM HEALTH MONITOR ── */
+
+  .health-panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 900;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .health-panel-overlay.open { display: flex; }
+
+  .health-panel {
+    background: var(--bg);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .health-panel-header {
+    background: var(--surface);
+    padding: 18px 20px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .health-panel-title {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .health-status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .health-status-badge.ok { background: #e8f5e9; color: #2e7d32; }
+  .health-status-badge.warn { background: var(--accent-pale); color: #9a6600; }
+  .health-status-badge.crit { background: var(--danger-pale); color: var(--danger); }
+
+  .health-panel-body { padding: 16px; }
+
+  .health-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .health-summary-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .health-summary-card .hs-num {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .health-summary-card .hs-num.green { color: #4CAF50; }
+  .health-summary-card .hs-num.yellow { color: #F9A825; }
+  .health-summary-card .hs-num.red { color: var(--danger); }
+  .health-summary-card .hs-label {
+    font-size: 11px;
+    color: var(--text-3);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .health-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 16px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .health-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--border);
+  }
+  .health-item.critical { border-left-color: var(--danger); }
+  .health-item.warning { border-left-color: var(--accent); }
+  .health-item.ok { border-left-color: #4CAF50; }
+  .health-item.suggestion { border-left-color: #3b82f6; }
+
+  .health-item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .health-item-icon { font-size: 16px; }
+  .health-item-title { font-weight: 700; font-size: 14px; flex: 1; }
+  .health-item-severity {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+  .health-item.critical .health-item-severity { background: var(--danger-pale); color: var(--danger); }
+  .health-item.warning .health-item-severity { background: var(--accent-pale); color: #9a6600; }
+  .health-item.suggestion .health-item-severity { background: #e3f2fd; color: #1565c0; }
+
+  .health-item-desc {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .health-item-detail {
+    font-size: 12px;
+    color: var(--text-3);
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    max-height: 100px;
+    overflow-y: auto;
+    font-family: var(--mono);
+  }
+  .health-fix-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .health-fix-btn:hover { background: var(--primary-light); }
+  .health-fix-btn.fixing { background: var(--text-3); cursor: wait; }
+
+  .health-ok-msg {
+    text-align: center;
+    padding: 30px;
+    color: #4CAF50;
+  }
+  .health-ok-msg .ok-icon { font-size: 48px; margin-bottom: 10px; }
+  .health-ok-msg .ok-text { font-size: 15px; font-weight: 700; }
+  .health-ok-msg .ok-sub { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+  .health-last-check {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-3);
+    padding: 10px;
+  }
+
+  @media(max-width:600px) {
+    .health-panel-overlay { padding: 0; align-items: flex-end; }
+    .health-panel { border-radius: 16px 16px 0 0; max-height: 90vh; }
+    .health-summary { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .health-summary-card .hs-num { font-size: 20px; }
+    .drawer-menu { width: 260px; }
+  }
+
+  /* ── LANDSCAPE WARNING OVERLAY ── */
+  .landscape-warning {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: linear-gradient(135deg, var(--primary) 0%, #1a3a0a 100%);
+    color: #fff;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+    padding: 30px;
+  }
+  .landscape-warning .rotate-icon {
+    font-size: 64px;
+    animation: rotatePhone 2s ease-in-out infinite;
+  }
+  .landscape-warning h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+  }
+  .landscape-warning p {
+    font-size: 15px;
+    opacity: 0.85;
+    max-width: 300px;
+    line-height: 1.5;
+  }
+  .landscape-warning .dismiss-landscape {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--sans);
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .landscape-warning .dismiss-landscape:active {
+    background: rgba(255,255,255,0.35);
+  }
+  @keyframes rotatePhone {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-30deg); }
+    75% { transform: rotate(30deg); }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .landscape-warning { display: flex; }
+    .landscape-warning.dismissed { display: none; }
+  }
 </style>
 </head>
 <body>
 
+<!-- LANDSCAPE WARNING OVERLAY -->
+<div class="landscape-warning" id="landscape-warning">
+  <div class="rotate-icon">📱</div>
+  <h2>กรุณาหมุนจอเป็นแนวตั้ง</h2>
+  <p>แอปนี้ออกแบบมาสำหรับการใช้งานในแนวตั้ง (Portrait) เพื่อประสบการณ์ที่ดีที่สุด</p>
+  <button class="dismiss-landscape" onclick="dismissLandscape()">ใช้งานแนวนอนต่อ</button>
+</div>
+
 <!-- TOP BAR -->
 <nav class="topbar">
-  <div class="topbar-brand"><span>🛒</span> ร้านของชำ</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleDrawerMenu()">
+      <span></span><span></span><span></span>
+      <span class="hamburger-dot" id="hamburger-dot" style="display:none;"></span>
+    </button>
+    <div class="topbar-brand"><span>🛒</span> ร้านของชำ</div>
+  </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('pos',this)">🏪 <span>ขายสินค้า</span></button>
     <button class="nav-tab" onclick="showPage('products',this)">📦 <span>สินค้า</span></button>
@@ -1489,6 +2140,58 @@
     <span class="bn-icon">💬</span>ข้อความ<span id="inbox-badge" style="display:none;background:#e53e3e;color:#fff;font-size:9px;border-radius:99px;padding:1px 5px;margin-left:2px;vertical-align:top;"></span>
   </button>
 </nav>
+
+<!-- Drawer Menu -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawerMenu()"></div>
+<div class="drawer-menu" id="drawer-menu">
+  <div class="drawer-header">
+    <div class="drawer-logo">🛒</div>
+    <div>
+      <div class="drawer-title">ร้านของชำ</div>
+      <div class="drawer-sub">ระบบจัดการร้านค้า POS</div>
+    </div>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section-title">เครื่องมือ</div>
+    <button class="drawer-item" onclick="toggleDrawerMenu();openHealthPanel()">
+      <span class="drawer-item-icon">🩺</span>
+      <div class="drawer-item-text">
+        <div class="drawer-item-label">ตรวจสุขภาพระบบ</div>
+        <div class="drawer-item-desc">ตรวจสอบปัญหาและคำแนะนำ</div>
+      </div>
+      <span class="drawer-health-badge" id="drawer-health-badge" style="display:none;"></span>
+    </button>
+    <button class="drawer-item" onclick="toggleDrawerMenu();toggleChat()">
+      <span class="drawer-item-icon">🤖</span>
+      <div class="drawer-item-text">
+        <div class="drawer-item-label">ถามบอท</div>
+        <div class="drawer-item-desc">ถามข้อมูลร้านได้เลย</div>
+      </div>
+    </button>
+    <button class="drawer-item" onclick="toggleDrawerMenu();openScanner()">
+      <span class="drawer-item-icon">📷</span>
+      <div class="drawer-item-text">
+        <div class="drawer-item-label">สแกนบาร์โค้ด</div>
+        <div class="drawer-item-desc">สแกนด้วยกล้องหรือพิมพ์เอง</div>
+      </div>
+    </button>
+    <div class="drawer-section-title">ข้อมูล</div>
+    <div class="drawer-info-grid">
+      <div class="drawer-info-card">
+        <div class="drawer-info-num" id="drawer-product-count">0</div>
+        <div class="drawer-info-label">สินค้า</div>
+      </div>
+      <div class="drawer-info-card">
+        <div class="drawer-info-num" id="drawer-sales-count">0</div>
+        <div class="drawer-info-label">บิลทั้งหมด</div>
+      </div>
+      <div class="drawer-info-card">
+        <div class="drawer-info-num" id="drawer-firebase-status">-</div>
+        <div class="drawer-info-label">Firebase</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Firebase Setup Banner -->
 <div id="fb-banner" style="display:none;background:#FEF3DC;border-bottom:2px solid #E8A020;padding:12px 20px;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -1546,15 +2249,6 @@
   <!-- Summary strip -->
   <div class="prod-summary-strip" id="prod-summary-strip"></div>
 
-  <!-- Stock alert section -->
-  <div id="stock-alert-section" style="display:none;margin-bottom:20px;">
-    <div class="stock-alert-header">
-      <span>⚠️ สินค้าต้องติดตาม</span>
-      <button class="filter-btn" onclick="toggleAlertSection()" id="alert-toggle-btn">ซ่อน</button>
-    </div>
-    <div class="stock-alert-grid" id="stock-alert-grid"></div>
-  </div>
-
   <!-- Main table -->
   <div class="product-table">
     <div class="table-search" style="justify-content:space-between;flex-wrap:wrap;gap:10px;">
@@ -1599,40 +2293,62 @@
   </div>
 
   <!-- Month summary cards -->
-  <div class="report-grid" style="margin-bottom:20px;">
+  <div class="report-grid" style="margin-bottom:14px;">
     <div class="stat-card">
+      <span class="stat-icon">💰</span>
       <div class="stat-label">ยอดขายเดือนนี้</div>
       <div class="stat-value" id="stat-month-total">฿0</div>
       <div class="stat-sub" id="stat-month-tx">0 บิล</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card profit-card">
+      <span class="stat-icon">📈</span>
       <div class="stat-label">กำไรเดือนนี้</div>
       <div class="stat-value" id="stat-month-profit">฿0</div>
       <div class="stat-sub">หลังหักต้นทุน</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card accent-card">
+      <span class="stat-icon">🏆</span>
       <div class="stat-label">วันที่ขายดีสุด</div>
       <div class="stat-value" id="stat-best-day" style="font-size:18px;">-</div>
       <div class="stat-sub" id="stat-best-day-val"></div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card info-card">
+      <span class="stat-icon">🧾</span>
       <div class="stat-label">ยอดขายรวมทั้งหมด</div>
       <div class="stat-value" id="stat-all">฿0</div>
       <div class="stat-sub" id="stat-all-tx">ทุกเวลา</div>
     </div>
   </div>
 
-  <!-- Calendar -->
-  <div class="report-section" style="margin-bottom:20px;">
-    <div class="report-section-header">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <button class="filter-btn" onclick="changeMonth(-1)">‹</button>
-        <span id="cal-month-label" style="font-size:16px;font-weight:700;min-width:140px;text-align:center;"></span>
-        <button class="filter-btn" onclick="changeMonth(1)">›</button>
-      </div>
-      <button class="filter-btn" onclick="goToday()">วันนี้</button>
+  <!-- Mini daily chart -->
+  <div class="mini-chart-section">
+    <div class="mini-chart-header">
+      <span style="font-size:18px;">📊</span> ยอดขายรายวัน
     </div>
-    <div style="padding:16px;">
+    <div class="mini-chart" id="mini-chart"></div>
+  </div>
+
+  <!-- Stock alert section -->
+  <div id="stock-alert-section" style="display:none;margin-bottom:14px;">
+    <div class="stock-alert-header">
+      <span>⚠️ สินค้าต้องติดตาม</span>
+      <button class="filter-btn" onclick="toggleAlertSection()" id="alert-toggle-btn">ซ่อน</button>
+    </div>
+    <div class="stock-alert-grid" id="stock-alert-grid"></div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="report-section" style="margin-bottom:14px;">
+    <div class="report-section-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">📅</span>
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+        <span id="cal-month-label" style="font-size:16px;font-weight:700;min-width:160px;text-align:center;"></span>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+      </div>
+      <button class="filter-btn" onclick="goToday()" style="font-weight:700;">📌 วันนี้</button>
+    </div>
+    <div style="padding:16px 16px 20px;">
       <div class="cal-grid-head">
         <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
       </div>
@@ -1642,27 +2358,36 @@
 
   <!-- Day detail panel -->
   <div class="report-section" id="day-detail-panel" style="display:none;">
-    <div class="report-section-header">
-      <span id="day-detail-title">รายการขาย</span>
-      <button class="filter-btn" onclick="closeDayDetail()">✕ ปิด</button>
+    <div class="report-section-header" style="background:linear-gradient(to right,rgba(45,80,22,0.06),transparent);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">📋</span>
+        <span id="day-detail-title" style="font-size:16px;">รายการขาย</span>
+      </div>
+      <button class="filter-btn" onclick="closeDayDetail()" style="color:var(--danger);border-color:var(--danger-pale);background:var(--danger-pale);">✕ ปิด</button>
     </div>
     <div style="padding:0 20px 4px;">
       <div class="report-grid" style="margin:14px 0 10px;gap:10px;">
         <div class="stat-card" style="padding:14px 16px;">
+          <span class="stat-icon" style="font-size:20px;">💰</span>
           <div class="stat-label">ยอดขาย</div>
           <div class="stat-value" id="dd-total" style="font-size:20px;">฿0</div>
         </div>
-        <div class="stat-card" style="padding:14px 16px;">
+        <div class="stat-card profit-card" style="padding:14px 16px;">
+          <span class="stat-icon" style="font-size:20px;">📈</span>
           <div class="stat-label">กำไร</div>
           <div class="stat-value" id="dd-profit" style="font-size:20px;">฿0</div>
         </div>
-        <div class="stat-card" style="padding:14px 16px;">
+        <div class="stat-card info-card" style="padding:14px 16px;">
+          <span class="stat-icon" style="font-size:20px;">🧾</span>
           <div class="stat-label">จำนวนบิล</div>
           <div class="stat-value" id="dd-count" style="font-size:20px;">0</div>
         </div>
       </div>
     </div>
-    <div class="sales-log" id="day-sales-log" style="padding-bottom:12px;"></div>
+    <div style="padding:0 20px 8px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">รายการบิล</div>
+    </div>
+    <div class="sales-log" id="day-sales-log" style="padding-bottom:16px;"></div>
   </div>
 </div>
 
@@ -1911,14 +2636,26 @@
 <div class="modal-overlay" id="scanner-modal">
   <div class="modal scanner-modal">
     <div class="modal-title">📷 สแกนบาร์โค้ด</div>
-    <div class="scanner-box">
-      <div class="scanner-line"></div>
-      <span style="z-index:2">📦</span>
+    <div class="scanner-tabs">
+      <button class="scanner-tab active" id="tab-camera" onclick="switchScannerTab('camera')">📷 กล้อง</button>
+      <button class="scanner-tab" id="tab-manual" onclick="switchScannerTab('manual')">⌨️ พิมพ์เอง</button>
     </div>
-    <p style="font-size:13px;color:var(--text-3);margin-bottom:12px;">ใส่บาร์โค้ดด้วยตนเองได้เลย</p>
-    <div class="barcode-manual-input">
-      <input class="form-input" type="text" id="barcode-input" placeholder="พิมพ์บาร์โค้ด..." style="flex:1">
-      <button class="btn-confirm" onclick="searchBarcode()" style="flex:none;padding:10px 18px;">ค้นหา</button>
+    <div id="scanner-camera-panel">
+      <div class="scanner-box" id="scanner-video-box">
+        <div id="scanner-reader"></div>
+      </div>
+      <div class="scanner-status" id="scanner-status">กำลังเปิดกล้อง...</div>
+      <div id="scanner-result" class="scanner-result" style="display:none;"></div>
+    </div>
+    <div id="scanner-manual-panel" style="display:none;">
+      <div class="scanner-box" style="height:120px;">
+        <span style="font-size:48px;">⌨️</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-3);margin-bottom:12px;">พิมพ์หรือวางเลขบาร์โค้ด</p>
+      <div class="barcode-manual-input">
+        <input class="form-input" type="text" id="barcode-input" placeholder="พิมพ์บาร์โค้ด..." style="flex:1" inputmode="numeric">
+        <button class="btn-confirm" onclick="searchBarcode()" style="flex:none;padding:10px 18px;">ค้นหา</button>
+      </div>
     </div>
     <div style="margin-top:16px;">
       <button class="btn-cancel" style="width:100%" onclick="closeScanner()">ปิด</button>
@@ -1956,6 +2693,24 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- ═════════════ HEALTH MONITOR ═════════════ -->
+<div class="health-panel-overlay" id="health-panel-overlay">
+  <div class="health-panel">
+    <div class="health-panel-header">
+      <div class="health-panel-title">🩺 สุขภาพระบบ</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="health-status-badge ok" id="health-status-badge">ปกติ</span>
+        <button class="filter-btn" onclick="closeHealthPanel()" style="font-size:16px;padding:4px 10px;">✕</button>
+      </div>
+    </div>
+    <div class="health-panel-body" id="health-panel-body">
+      <div class="health-summary" id="health-summary"></div>
+      <div id="health-items"></div>
+      <div class="health-last-check" id="health-last-check"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ═════════════ CHATBOT ═════════════ -->
 <button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="ถามบอท">
   🤖
@@ -1987,6 +2742,7 @@
 <!-- Firebase CDN (compat version — ใช้ได้กับ file://) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
 // ══════════════════════════════════════════
@@ -2465,22 +3221,160 @@ function printReceipt() {
 }
 
 // ══════════════════════════════════════════
-//  BARCODE SCANNER
+//  BARCODE SCANNER (Camera + Manual)
 // ══════════════════════════════════════════
-function openScanner() { document.getElementById('scanner-modal').classList.add('open'); document.getElementById('barcode-input').focus(); }
-function closeScanner() { document.getElementById('scanner-modal').classList.remove('open'); }
+let html5Scanner = null;
+let scannerCooldown = false;
+let scannerRunning = false;
+
+function openScanner() {
+  document.getElementById('scanner-modal').classList.add('open');
+  document.getElementById('scanner-result').style.display = 'none';
+  document.getElementById('scanner-status').textContent = '';
+  document.getElementById('scanner-status').className = 'scanner-status';
+  switchScannerTab('camera');
+}
+
+function closeScanner() {
+  document.getElementById('scanner-modal').classList.remove('open');
+  document.getElementById('scanner-result').style.display = 'none';
+  document.getElementById('scanner-status').textContent = '';
+  document.getElementById('scanner-status').className = 'scanner-status';
+  stopCameraScanner();
+}
+
+function switchScannerTab(tab) {
+  document.getElementById('tab-camera').classList.toggle('active', tab === 'camera');
+  document.getElementById('tab-manual').classList.toggle('active', tab === 'manual');
+  document.getElementById('scanner-camera-panel').style.display = tab === 'camera' ? '' : 'none';
+  document.getElementById('scanner-manual-panel').style.display = tab === 'manual' ? '' : 'none';
+  document.getElementById('scanner-result').style.display = 'none';
+
+  if (tab === 'camera') {
+    setTimeout(() => startCameraScanner(), 300);
+  } else {
+    stopCameraScanner();
+    setTimeout(() => document.getElementById('barcode-input').focus(), 100);
+  }
+}
+
+function startCameraScanner() {
+  if (scannerRunning) return;
+  const statusEl = document.getElementById('scanner-status');
+  const readerEl = document.getElementById('scanner-reader');
+  statusEl.textContent = 'กำลังเปิดกล้อง...';
+  statusEl.className = 'scanner-status';
+
+  readerEl.innerHTML = '';
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    statusEl.innerHTML = '⚠️ เบราว์เซอร์ไม่รองรับกล้อง ลองใช้แท็บ "พิมพ์เอง"';
+    statusEl.className = 'scanner-status error';
+    return;
+  }
+
+  try {
+    html5Scanner = new Html5Qrcode('scanner-reader');
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 150 },
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.QR_CODE
+      ]
+    };
+    html5Scanner.start(
+      { facingMode: 'environment' },
+      config,
+      onScanSuccess,
+      () => {}
+    ).then(() => {
+      scannerRunning = true;
+      statusEl.textContent = 'เล็งกล้องไปที่บาร์โค้ดสินค้า';
+      statusEl.className = 'scanner-status';
+    }).catch(err => {
+      console.warn('Camera error:', err);
+      statusEl.innerHTML = '⚠️ เปิดกล้องไม่ได้ — ลองใช้แท็บ "พิมพ์เอง"';
+      statusEl.className = 'scanner-status error';
+      html5Scanner = null;
+    });
+  } catch(e) {
+    console.warn('Scanner init error:', e);
+    statusEl.innerHTML = '⚠️ เบราว์เซอร์ไม่รองรับกล้อง';
+    statusEl.className = 'scanner-status error';
+    html5Scanner = null;
+  }
+}
+
+function stopCameraScanner() {
+  if (!html5Scanner) { scannerRunning = false; return; }
+  const scanner = html5Scanner;
+  html5Scanner = null;
+  scannerRunning = false;
+  scanner.stop().then(() => {
+    try { scanner.clear(); } catch(e) {}
+  }).catch(() => {
+    try { scanner.clear(); } catch(e) {}
+  });
+}
+
+function onScanSuccess(code) {
+  if (scannerCooldown) return;
+  scannerCooldown = true;
+  setTimeout(() => { scannerCooldown = false; }, 2000);
+
+  const statusEl = document.getElementById('scanner-status');
+  const resultEl = document.getElementById('scanner-result');
+  const p = products.find(x => x.barcode === code);
+
+  if (p) {
+    statusEl.innerHTML = '✅ พบสินค้า!';
+    statusEl.className = 'scanner-status success';
+    resultEl.innerHTML = `
+      <span class="sr-emoji">${p.emoji || '📦'}</span>
+      <div class="sr-info">
+        <div class="sr-name">${p.name}</div>
+        <div class="sr-detail">${p.brand||''} ${p.size||''} · สต็อก: ${p.stock} ${p.unit||'ชิ้น'}</div>
+      </div>
+      <div class="sr-price">฿${p.price}</div>
+    `;
+    resultEl.style.display = 'flex';
+    resultEl.style.borderColor = 'var(--primary)';
+    resultEl.style.background = 'var(--primary-pale)';
+    addToCart(p.id);
+    showToast(`เพิ่ม ${p.name} ลงตะกร้า`, 'success');
+
+    if (navigator.vibrate) navigator.vibrate(100);
+  } else {
+    statusEl.innerHTML = `❌ ไม่พบสินค้าบาร์โค้ด: ${code}`;
+    statusEl.className = 'scanner-status error';
+    resultEl.innerHTML = `
+      <span class="sr-emoji">❓</span>
+      <div class="sr-info">
+        <div class="sr-name">ไม่พบสินค้า</div>
+        <div class="sr-detail">บาร์โค้ด: ${code}</div>
+      </div>
+    `;
+    resultEl.style.display = 'flex';
+    resultEl.style.borderColor = 'var(--danger)';
+    resultEl.style.background = 'var(--danger-pale)';
+
+    if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+  }
+}
+
 function searchBarcode() {
   const code = document.getElementById('barcode-input').value.trim();
   if(!code) return;
-  const p = products.find(x=>x.barcode===code);
-  if(p) {
-    closeScanner();
-    addToCart(p.id);
-    document.getElementById('barcode-input').value='';
-  } else {
-    showToast('ไม่พบสินค้าบาร์โค้ดนี้', 'error');
-  }
+  onScanSuccess(code);
+  document.getElementById('barcode-input').value='';
 }
+
 document.getElementById('barcode-input').addEventListener('keydown', e => { if(e.key==='Enter') searchBarcode(); });
 
 // ══════════════════════════════════════════
@@ -2518,8 +3412,15 @@ function renderStockAlerts() {
 
   const section = document.getElementById('stock-alert-section');
   if (!alertList.length) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
   section.style.display = alertSectionVisible ? 'block' : 'none';
+
+  const emptyCount = alertList.filter(p => p.stock === 0).length;
+  const lowCount = alertList.length - emptyCount;
+  const headerEl = section.querySelector('.stock-alert-header span');
+  if (headerEl) {
+    headerEl.innerHTML = `⚠️ สินค้าต้องติดตาม <span class="stock-alert-count">${alertList.length}</span>`;
+    if (emptyCount > 0) headerEl.innerHTML += ` <span style="font-size:12px;font-weight:500;">( หมด ${emptyCount} · ใกล้หมด ${lowCount} )</span>`;
+  }
 
   document.getElementById('stock-alert-grid').innerHTML = alertList.map(p => {
     const isEmpty = p.stock === 0;
@@ -2556,7 +3457,6 @@ function sortProducts(list) {
 
 function renderProductTable() {
   renderProductSummary();
-  renderStockAlerts();
 
   const q = document.getElementById('prod-search').value.trim().toLowerCase();
   let list = products.filter(p =>
@@ -2967,7 +3867,7 @@ function renderDayDetail(key) {
     return `<div class="log-item">
       <span class="log-time">${timeStr}</span>
       <span class="log-desc">${s.items.map(i=>`${i.name}×${i.qty}`).join(', ')}</span>
-      <span style="color:var(--text-3);font-size:12px;">${methodIcon}</span>
+      <span class="log-method">${methodIcon}</span>
       <span class="log-total">฿${s.total.toFixed(2)}</span>
     </div>`;
   }).join('');
@@ -2976,7 +3876,33 @@ function renderDayDetail(key) {
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function renderMiniChart() {
+  const dayMap = getSalesByDay(sales);
+  const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
+  const today = getDayKey(new Date());
+
+  const dailyTotals = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${reportYear}-${String(reportMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    dailyTotals.push({ day: d, total: dayMap[key]?.total || 0, key });
+  }
+  const maxVal = Math.max(...dailyTotals.map(d => d.total), 1);
+
+  document.getElementById('mini-chart').innerHTML = dailyTotals.map(d => {
+    const pct = Math.max((d.total / maxVal) * 100, 0);
+    const isToday = d.key === today;
+    const barCls = d.total === 0 ? 'mini-chart-bar empty' : (isToday ? 'mini-chart-bar today-bar' : 'mini-chart-bar');
+    const valStr = d.total >= 1000 ? `${(d.total/1000).toFixed(1)}k` : (d.total > 0 ? d.total.toFixed(0) : '');
+    return `<div class="mini-chart-bar-wrap" onclick="selectDay('${d.key}')">
+      ${valStr ? `<div class="mini-chart-val">${valStr}</div>` : ''}
+      <div class="${barCls}" style="height:${d.total > 0 ? pct+'%' : '3px'}" title="วันที่ ${d.day}: ฿${d.total.toFixed(0)}"></div>
+      <div class="mini-chart-day">${d.day}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderReport() {
+  renderStockAlerts();
   const dayMap = getSalesByDay(sales);
 
   // Month stats
@@ -3013,6 +3939,7 @@ function renderReport() {
   document.getElementById('stat-all-tx').textContent = `${sales.length} บิลทั้งหมด`;
 
   renderCalendar();
+  renderMiniChart();
 
   // Re-render detail if a day is selected
   if (selectedDay) renderDayDetail(selectedDay);
@@ -3062,21 +3989,54 @@ let changelogs = [];
 const CL_TYPE_LABEL = { fix:'🔧 แก้ไขปัญหา', feature:'✨ เพิ่มฟีเจอร์', update:'🔄 อัปเดต', note:'📌 หมายเหตุ' };
 const CL_TYPE_ICON  = { fix:'🔧', feature:'✨', update:'🔄', note:'📌' };
 
-// แปลง date string (YYYY-MM-DD) → timestamp เที่ยงวันเวลาไทย (UTC+7)
-function dateStrToTs(dateStr, offsetMinutes = 0) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  // เที่ยงวันไทย (UTC+7) = 05:00 UTC
-  return Date.UTC(y, m - 1, d, 5, 0, 0) + offsetMinutes * 60000;
-}
-
 const DEFAULT_CHANGELOGS = [
+  {
+    id: 17,
+    title: 'ล็อคหน้าจอแนวตั้ง + แจ้งเตือนเมื่อหมุนจอ',
+    type: 'update',
+    date: '2026-06-26',
+    detail: 'เพิ่มระบบจัดการหน้าจอแนวนอน (Landscape)\n- ล็อคหน้าจอแนวตั้งอัตโนมัติ (ถ้า browser รองรับ)\n- แสดง overlay แจ้งเตือนเมื่อหมุนจอเป็นแนวนอน\n- มีปุ่ม "ใช้งานแนวนอนต่อ" ถ้าต้องการใช้แนวนอน\n- ป้องกัน layout เพี้ยนเมื่อหมุนจอ',
+    order: 0,
+  },
+  {
+    id: 16,
+    title: 'เพิ่มระบบตรวจสุขภาพระบบอัตโนมัติ',
+    type: 'feature',
+    date: '2026-06-18',
+    detail: 'เพิ่มปุ่ม 🩺 มุมซ้ายล่าง ตรวจสอบระบบหลังบ้านอัตโนมัติ\n- ตรวจทุก 5 นาที: Firebase, บาร์โค้ดซ้ำ, สต็อกติดลบ, สินค้าขาดทุน, ข้อมูลไม่ครบ\n- แสดงสถานะ เขียว=ปกติ แดง=วิกฤต เหลือง=เตือน\n- แก้ไขปัญหาอัตโนมัติได้ (บาร์โค้ดซ้ำ, สต็อกติดลบ)\n- มีคำแนะนำสำหรับปรับปรุงระบบ',
+    order: 1,
+  },
+  {
+    id: 15,
+    title: 'สแกนบาร์โค้ดด้วยกล้องได้แล้ว',
+    type: 'feature',
+    date: '2026-06-17',
+    detail: 'เพิ่มระบบสแกนบาร์โค้ดผ่านกล้องมือถือ/เว็บแคม\n- กดปุ่ม 📷 ที่หน้าขายสินค้า เปิดกล้องสแกนได้เลย\n- รองรับบาร์โค้ด EAN-13, EAN-8, UPC-A, Code-128, QR Code\n- สแกนแล้วเพิ่มสินค้าเข้าตะกร้าอัตโนมัติ\n- มี vibrate feedback เมื่อสแกนสำเร็จ\n- ยังพิมพ์บาร์โค้ดเองได้ในแท็บ "พิมพ์เอง"',
+    order: 2,
+  },
+  {
+    id: 14,
+    title: 'ย้ายสินค้าต้องติดตามไปหน้ารายงาน',
+    type: 'update',
+    date: '2026-06-17',
+    detail: 'ย้ายช่อง "⚠️ สินค้าต้องติดตาม" (สินค้าใกล้หมดและหมดสต็อก) จากหน้าจัดการสินค้าไปแสดงในหน้ารายงานแทน\n- อยู่ใต้การ์ดสรุปยอดขาย เหนือปฏิทิน\n- กดที่การ์ดสินค้าเพื่อแก้ไขสต็อกได้เหมือนเดิม\n- หน้าจัดการสินค้าเหลือเฉพาะตารางจัดการ ไม่รกตา',
+    order: 3,
+  },
+  {
+    id: 13,
+    title: 'แก้เวลาในบันทึกอัปเดตให้ตรงกับเวลาจริง',
+    type: 'fix',
+    date: '2026-06-17',
+    detail: 'แก้ระบบเวลาใน changelog ที่แสดง 12:0X ทุกรายการ\n- เปลี่ยนจาก timestamp ปลอม (เที่ยงวัน+offset) เป็นเวลาจริงตอน seed เข้า Firebase\n- เพิ่ม migration แก้ไข entries เก่าที่เวลาผิดใน Firebase อัตโนมัติ\n- รายการใหม่ที่สร้างจากปุ่ม "เพิ่มบันทึก" ใช้เวลาจริงอยู่แล้ว',
+    order: 4,
+  },
   {
     id: 12,
     title: 'ใบเสร็จแสดงรายละเอียดสินค้าเพิ่ม',
     type: 'feature',
     date: '2026-06-17',
     detail: 'ใบเสร็จแสดงรายละเอียดเพิ่มเติมของสินค้าทุกรายการ\n- แสดงยี่ห้อ/แบรนด์ และขนาด/น้ำหนักใต้ชื่อสินค้า\n- แสดงเลขบาร์โค้ด\n- แสดงหน่วยนับ (ขวด, ซอง, แพ็ค ฯลฯ) ต่อท้ายจำนวน\n- แสดงเลขบิลและจำนวนรายการรวมในใบเสร็จพิมพ์\n- อัปเดตทั้ง 3 จุด: modal ชำระเงิน, modal สำเร็จ, และหน้าพิมพ์ใบเสร็จ',
-    get createdAt() { return dateStrToTs('2026-06-17', 11); },
+    order: 5,
   },
   {
     id: 11,
@@ -3084,7 +4044,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มระบบแจ้งเตือนเมื่อมีการอัปเดตระบบใหม่\n- แสดงจุดแจ้งเตือนสีแดงบนแท็บ "อัปเดต" เมื่อมีรายการใหม่ที่ยังไม่ได้อ่าน\n- แสดง popup แจ้งเตือนอัตโนมัติพร้อมสรุปรายการอัปเดตใหม่\n- จำสถานะการอ่านใน localStorage ข้ามเซสชันได้\n- กดดูรายละเอียดจะพาไปหน้าอัปเดตโดยตรง\n- รองรับทั้ง Firebase real-time และ localStorage fallback',
-    get createdAt() { return dateStrToTs('2026-06-17', 10); },
+    order: 6,
   },
   {
     id: 10,
@@ -3092,7 +4052,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มบอทลอยอยู่มุมขวาล่าง กดปุ่ม 🤖 เพื่อเปิด\nถามได้เลยว่า:\n• ยอดขาย/กำไร วันนี้ เดือนนี้ ทั้งหมด\n• สินค้าใกล้หมด/หมดสต็อก\n• สต็อกสินค้าชิ้นนั้นๆ\n• สินค้าขายดีสุด / กำไรดีสุด\n• ราคาสินค้า\n• บิลล่าสุด\n• หมวดหมู่ทั้งหมด\nบอทดึงข้อมูลจริงจาก Firebase แบบ real-time',
-    get createdAt() { return dateStrToTs('2026-06-17', 9); },
+    order: 7,
   },
   {
     id: 9,
@@ -3100,7 +4060,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ปรับหน้าตาให้ใช้งานบนสมาร์ทโฟนได้เต็มรูปแบบ\n- เพิ่ม Bottom Navigation Bar แทน top tabs บนมือถือ\n- ตารางสินค้าเปลี่ยนเป็น card list อ่านง่ายขึ้น\n- Modal เปิดจากด้านล่างแบบ bottom sheet\n- ปุ่มและ touch target ใหญ่ขึ้นเหมาะกับนิ้วมือ\n- input font size 16px ป้องกัน iOS zoom อัตโนมัติ\n- ปฏิทินและการ์ดต่างๆ ปรับขนาดให้พอดีหน้าจอเล็ก',
-    get createdAt() { return dateStrToTs('2026-06-17', 8); },
+    order: 8,
   },
   {
     id: 8,
@@ -3108,7 +4068,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ 2 จุด\n- บันทึกอัปเดตเดิมแสดงเวลา 07:00 เพราะ timestamp เป็น UTC+0 แก้โดยใช้เวลาเครื่อง (local time) แทน\n- สินค้าที่ไม่มีบาร์โค้ดจะได้รับ EAN-13 อัตโนมัติเมื่อระบบตรวจพบ',
-    get createdAt() { return dateStrToTs('2026-06-17', 7); },
+    order: 9,
   },
   {
     id: 7,
@@ -3116,7 +4076,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่ม 2 ฟีเจอร์ใหม่\n- บันทึกอัปเดตแสดงวันที่และเวลาแบบเต็ม (วัน/เดือน/ปี ชั่วโมง:นาที)\n- เพิ่มสินค้าใหม่จะสร้างเลขบาร์โค้ด 13 หลักให้อัตโนมัติ (EAN-13 format ขึ้นต้นด้วย 999) แก้ไขเองได้หากต้องการ',
-    get createdAt() { return dateStrToTs('2026-06-17', 6); },
+    order: 10,
   },
   {
     id: 6,
@@ -3124,7 +4084,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'ออกแบบหน้าจัดการสินค้าใหม่ทั้งหมด\n- เพิ่มแถบสรุป: สินค้าทั้งหมด / ใกล้หมด / หมดสต็อก / ปกติ\n- เพิ่มช่อง "⚠️ สินค้าต้องติดตาม" แสดงเฉพาะสินค้าใกล้หมดและหมดสต็อก กดเพื่อแก้ไขได้เลย\n- เพิ่มตัวเลือกเรียงสินค้า: ชื่อ / หมวดหมู่ / สต็อก / ราคา\n- ตารางสินค้าแสดง % กำไรต่อชิ้นและบาร์โค้ดในบรรทัดเดียวกัน\n- เมื่อเรียงตามหมวดหมู่จะมีหัวกลุ่มคั่นแต่ละหมวด',
-    get createdAt() { return dateStrToTs('2026-06-17', 5); },
+    order: 11,
   },
   {
     id: 1,
@@ -3132,7 +4092,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'feature',
     date: '2026-06-17',
     detail: 'เพิ่มแท็บ "📝 อัปเดต" สำหรับบันทึกการแก้ไขและฟีเจอร์ใหม่\n- เพิ่ม/แก้ไข/ลบบันทึกได้\n- เลือกประเภท: แก้ไขปัญหา / เพิ่มฟีเจอร์ / อัปเดต / หมายเหตุ\n- Sync real-time ผ่าน Firebase ทุกเครื่องเห็นพร้อมกัน',
-    get createdAt() { return dateStrToTs('2026-06-17', 4); },
+    order: 12,
   },
   {
     id: 2,
@@ -3140,7 +4100,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'ลบ toast "เชื่อมต่อ Firebase แล้ว" ที่ขึ้นทุกครั้งเมื่อเปิดเว็บ เพราะบังหน้าจอโดยไม่จำเป็น',
-    get createdAt() { return dateStrToTs('2026-06-17', 3); },
+    order: 13,
   },
   {
     id: 3,
@@ -3148,7 +4108,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'แก้ไข toast notification ให้แสดงผล 4 วินาทีแล้วค่อยๆ จางหายไปแทนที่จะค้างอยู่บนหน้าจอตลอด',
-    get createdAt() { return dateStrToTs('2026-06-17', 2); },
+    order: 14,
   },
   {
     id: 4,
@@ -3156,7 +4116,7 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนวิธีเก็บข้อมูลสินค้าใน Firebase จาก array → object keyed by ID\n- เดิม: db.ref("products").set(array) ทำให้เครื่อง A ทับข้อมูลเครื่อง B\n- ใหม่: db.ref("products/ID").set(p) อัปเดตเฉพาะสินค้าที่แก้ไข ไม่กระทบเครื่องอื่น\n- ทุกเครื่องรับข้อมูลอัปเดต real-time อัตโนมัติผ่าน Firebase listener',
-    get createdAt() { return dateStrToTs('2026-06-17', 1); },
+    order: 15,
   },
   {
     id: 5,
@@ -3164,22 +4124,60 @@ const DEFAULT_CHANGELOGS = [
     type: 'fix',
     date: '2026-06-17',
     detail: 'เปลี่ยนการหักสต็อกไปใช้ Firebase Transaction แทนการแก้ค่าในหน่วยความจำ\n- เดิม: ลดค่า stock ในตัวแปร → save ทีหลัง (เกิด race condition ถ้า Firebase listener ยิงก่อน)\n- ใหม่: db.ref("products/ID/stock").transaction() อัปเดต atomic ทันที ไม่มี race condition\n- รองรับการขายพร้อมกัน 2 เครื่องได้อย่างถูกต้อง',
-    get createdAt() { return dateStrToTs('2026-06-17', 0); },
+    order: 16,
   },
 ];
+
+function seedChangelogEntry(cl) {
+  const data = { title: cl.title, type: cl.type, date: cl.date, detail: cl.detail, id: cl.id,
+    createdAt: Date.now() - (cl.order || 0) * 60000 };
+  if (db) {
+    db.ref('changelogs').push(data);
+  }
+  return data;
+}
+
+function migrateChangelogTimestamps() {
+  if (!db) return;
+  if (localStorage.getItem('pos_cl_ts_fixed_v2')) return;
+
+  const noonBase = Date.UTC(2026, 5, 17, 5, 0, 0);
+  const noonEnd = noonBase + 20 * 60000;
+
+  const fakeEntries = changelogs.filter(cl =>
+    cl.fbKey && cl.createdAt >= noonBase && cl.createdAt <= noonEnd
+  );
+
+  if (fakeEntries.length === 0) {
+    localStorage.setItem('pos_cl_ts_fixed_v2', '1');
+    return;
+  }
+
+  fakeEntries.sort((a, b) => a.createdAt - b.createdAt);
+  const now = Date.now();
+  const spacing = 60000;
+  fakeEntries.forEach((cl, idx) => {
+    const newTs = now - (fakeEntries.length - 1 - idx) * spacing;
+    db.ref('changelogs/' + cl.fbKey + '/createdAt').set(newTs);
+  });
+
+  localStorage.setItem('pos_cl_ts_fixed_v2', '1');
+}
 
 function initChangelogListeners() {
   if (!db) {
     changelogs = JSON.parse(localStorage.getItem('pos_changelogs') || 'null');
     if (!changelogs) {
-      changelogs = [...DEFAULT_CHANGELOGS];
+      changelogs = DEFAULT_CHANGELOGS.map(cl => ({...cl, createdAt: Date.now() - (cl.order || 0) * 60000}));
       localStorage.setItem('pos_changelogs', JSON.stringify(changelogs));
     } else {
-      // Seed any new DEFAULT_CHANGELOGS not yet in local storage
       const existingIds = new Set(changelogs.map(cl => cl.id));
       let added = false;
       DEFAULT_CHANGELOGS.forEach(cl => {
-        if (!existingIds.has(cl.id)) { changelogs.push(cl); added = true; }
+        if (!existingIds.has(cl.id)) {
+          changelogs.push({...cl, createdAt: Date.now() - (cl.order || 0) * 60000});
+          added = true;
+        }
       });
       if (added) localStorage.setItem('pos_changelogs', JSON.stringify(changelogs));
     }
@@ -3190,13 +4188,13 @@ function initChangelogListeners() {
     const val = snap.val();
     if (val) {
       changelogs = Object.entries(val).map(([key, cl]) => ({...cl, fbKey: key})).sort((a,b) => b.createdAt - a.createdAt);
-      // Auto-seed: push any DEFAULT_CHANGELOGS entry not yet in Firebase (matched by .id field)
       const existingIds = new Set(changelogs.map(cl => cl.id));
       DEFAULT_CHANGELOGS.forEach(cl => {
-        if (!existingIds.has(cl.id)) db.ref('changelogs').push(cl);
+        if (!existingIds.has(cl.id)) seedChangelogEntry(cl);
       });
+      migrateChangelogTimestamps();
     } else {
-      DEFAULT_CHANGELOGS.forEach(cl => db.ref('changelogs').push(cl));
+      DEFAULT_CHANGELOGS.forEach(cl => seedChangelogEntry(cl));
     }
     const pg = document.getElementById('page-changelog');
     if (pg.classList.contains('active')) renderChangelog();
@@ -3322,6 +4320,407 @@ async function deleteChangelog(key) {
   }
   showToast('ลบแล้ว','error');
 }
+
+// ══════════════════════════════════════════
+//  SYSTEM HEALTH MONITOR
+// ══════════════════════════════════════════
+let healthIssues = [];
+let lastHealthCheck = null;
+
+function toggleDrawerMenu() {
+  const drawer = document.getElementById('drawer-menu');
+  const overlay = document.getElementById('drawer-overlay');
+  const btn = document.getElementById('hamburger-btn');
+  const isOpen = drawer.classList.contains('open');
+  drawer.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+
+  if (!isOpen) {
+    document.getElementById('drawer-product-count').textContent = products.length;
+    document.getElementById('drawer-sales-count').textContent = sales.length;
+    document.getElementById('drawer-firebase-status').textContent = db ? '✅' : '❌';
+  }
+}
+
+function openHealthPanel() {
+  document.getElementById('health-panel-overlay').classList.add('open');
+  runHealthCheck();
+}
+function closeHealthPanel() {
+  document.getElementById('health-panel-overlay').classList.remove('open');
+}
+
+function runHealthCheck() {
+  healthIssues = [];
+  const checks = [
+    checkFirebaseConnection,
+    checkDuplicateBarcodes,
+    checkMissingBarcodes,
+    checkNegativeStock,
+    checkSellingAtLoss,
+    checkMissingProductFields,
+    checkStockAlerts,
+    checkSalesIntegrity,
+    checkLargeLocalStorage,
+    checkProductRecommendations,
+  ];
+  checks.forEach(fn => fn());
+  lastHealthCheck = new Date();
+  renderHealthPanel();
+  updateHealthFab();
+}
+
+function checkFirebaseConnection() {
+  if (!db) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '📡',
+      title: 'ไม่ได้เชื่อมต่อ Firebase',
+      desc: 'ระบบใช้ localStorage เก็บข้อมูลอยู่ ข้อมูลจะไม่ sync ข้ามเครื่อง ถ้าล้าง browser data ข้อมูลจะหาย',
+      detail: 'Firebase config อาจไม่ถูกต้อง หรือ internet ไม่เสถียร',
+    });
+  }
+}
+
+function checkDuplicateBarcodes() {
+  const bcMap = {};
+  products.forEach(p => {
+    if (!p.barcode) return;
+    if (!bcMap[p.barcode]) bcMap[p.barcode] = [];
+    bcMap[p.barcode].push(p);
+  });
+  const dupes = Object.entries(bcMap).filter(([, arr]) => arr.length > 1);
+  if (dupes.length) {
+    const details = dupes.map(([bc, arr]) => `${bc}: ${arr.map(p => p.name).join(', ')}`).join('\n');
+    healthIssues.push({
+      severity: 'critical',
+      icon: '🔴',
+      title: `บาร์โค้ดซ้ำ ${dupes.length} รายการ`,
+      desc: 'มีสินค้าหลายตัวใช้บาร์โค้ดเดียวกัน สแกนแล้วจะได้สินค้าผิดตัว',
+      detail: details,
+      fix: {
+        label: 'สร้างบาร์โค้ดใหม่ให้ตัวซ้ำ',
+        explain: 'จะสร้าง EAN-13 บาร์โค้ดใหม่ (ขึ้นต้น 999) ให้สินค้าตัวที่ซ้ำ (เก็บตัวแรกไว้) แล้วอัปเดตลง Firebase',
+        action: fixDuplicateBarcodes,
+      },
+    });
+  }
+}
+
+function fixDuplicateBarcodes() {
+  const bcMap = {};
+  products.forEach(p => {
+    if (!p.barcode) return;
+    if (!bcMap[p.barcode]) bcMap[p.barcode] = [];
+    bcMap[p.barcode].push(p);
+  });
+  let fixCount = 0;
+  Object.values(bcMap).forEach(arr => {
+    if (arr.length <= 1) return;
+    arr.slice(1).forEach(p => {
+      p.barcode = genBarcode();
+      if (db) db.ref('products/' + p.id + '/barcode').set(p.barcode);
+      fixCount++;
+    });
+  });
+  showToast(`แก้บาร์โค้ดซ้ำ ${fixCount} รายการ`, 'success');
+  runHealthCheck();
+}
+
+function checkMissingBarcodes() {
+  const missing = products.filter(p => !p.barcode);
+  if (missing.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '📦',
+      title: `สินค้าไม่มีบาร์โค้ด ${missing.length} รายการ`,
+      desc: 'สินค้าเหล่านี้จะสแกนบาร์โค้ดไม่ได้',
+      detail: missing.map(p => p.name).join(', '),
+      fix: {
+        label: 'สร้างบาร์โค้ดให้ทั้งหมด',
+        explain: 'จะสร้าง EAN-13 บาร์โค้ดอัตโนมัติ (ขึ้นต้น 999) ให้สินค้าที่ยังไม่มี แล้วอัปเดตลง Firebase',
+        action: fixMissingBarcodes,
+      },
+    });
+  }
+}
+
+function fixMissingBarcodes() {
+  let fixCount = 0;
+  products.forEach(p => {
+    if (!p.barcode) {
+      p.barcode = genBarcode();
+      if (db) db.ref('products/' + p.id + '/barcode').set(p.barcode);
+      fixCount++;
+    }
+  });
+  showToast(`ใส่บาร์โค้ดให้ ${fixCount} รายการ`, 'success');
+  runHealthCheck();
+}
+
+function checkNegativeStock() {
+  const neg = products.filter(p => p.stock < 0);
+  if (neg.length) {
+    healthIssues.push({
+      severity: 'critical',
+      icon: '🚨',
+      title: `สต็อกติดลบ ${neg.length} รายการ`,
+      desc: 'สินค้าเหล่านี้มีสต็อกติดลบ ผิดปกติ อาจเกิดจาก bug ตอนหักสต็อก',
+      detail: neg.map(p => `${p.name}: ${p.stock} ${p.unit||'ชิ้น'}`).join('\n'),
+      fix: {
+        label: 'ตั้งสต็อกเป็น 0',
+        explain: 'จะตั้งค่าสต็อกสินค้าที่ติดลบเป็น 0 ทั้งหมด แล้วอัปเดตลง Firebase',
+        action: fixNegativeStock,
+      },
+    });
+  }
+}
+
+function fixNegativeStock() {
+  products.filter(p => p.stock < 0).forEach(p => {
+    p.stock = 0;
+    if (db) db.ref('products/' + p.id + '/stock').set(0);
+  });
+  showToast('ตั้งสต็อกติดลบเป็น 0 แล้ว', 'success');
+  runHealthCheck();
+}
+
+function checkSellingAtLoss() {
+  const lossList = products.filter(p => p.cost > 0 && p.price > 0 && p.cost >= p.price);
+  if (lossList.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '💸',
+      title: `สินค้าขายไม่ได้กำไร ${lossList.length} รายการ`,
+      desc: 'สินค้าเหล่านี้มีต้นทุนเท่ากับหรือมากกว่าราคาขาย ขายแล้วขาดทุน',
+      detail: lossList.map(p => `${p.name}: ขาย ฿${p.price} ต้นทุน ฿${p.cost} (${p.cost > p.price ? 'ขาดทุน ฿' + (p.cost - p.price) : 'เท่าทุน'})`).join('\n'),
+    });
+  }
+}
+
+function checkMissingProductFields() {
+  const noPrice = products.filter(p => !p.price || p.price <= 0);
+  const noCost = products.filter(p => !p.cost && p.cost !== 0);
+  const noCat = products.filter(p => !p.cat);
+  const issues = [];
+  if (noPrice.length) issues.push(`ไม่มีราคาขาย: ${noPrice.map(p=>p.name).join(', ')}`);
+  if (noCost.length) issues.push(`ไม่มีต้นทุน: ${noCost.map(p=>p.name).join(', ')}`);
+  if (noCat.length) issues.push(`ไม่มีหมวดหมู่: ${noCat.map(p=>p.name).join(', ')}`);
+  if (issues.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '📝',
+      title: 'ข้อมูลสินค้าไม่ครบ',
+      desc: 'สินค้าบางรายการยังกรอกข้อมูลไม่ครบ อาจทำให้คำนวณกำไรผิดหรือจัดหมวดหมู่ไม่ได้',
+      detail: issues.join('\n'),
+    });
+  }
+}
+
+function checkStockAlerts() {
+  const outOfStock = products.filter(p => p.stock === 0);
+  const lowStock = products.filter(p => p.stock > 0 && p.stock <= p.alert);
+  if (outOfStock.length) {
+    healthIssues.push({
+      severity: 'critical',
+      icon: '🚫',
+      title: `สินค้าหมดสต็อก ${outOfStock.length} รายการ`,
+      desc: 'สินค้าเหล่านี้สต็อกเป็น 0 ขายไม่ได้แล้ว ควรสั่งเพิ่ม',
+      detail: outOfStock.map(p => p.name).join(', '),
+    });
+  }
+  if (lowStock.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '⚠️',
+      title: `สินค้าใกล้หมด ${lowStock.length} รายการ`,
+      desc: 'สินค้าเหล่านี้สต็อกต่ำกว่าจุดแจ้งเตือน ควรสั่งเพิ่มเร็วๆ นี้',
+      detail: lowStock.map(p => `${p.name}: เหลือ ${p.stock}/${p.alert}`).join(', '),
+    });
+  }
+}
+
+function checkSalesIntegrity() {
+  const badSales = sales.filter(s => !s.time || !s.total || !s.items || !s.items.length);
+  if (badSales.length) {
+    healthIssues.push({
+      severity: 'warning',
+      icon: '🧾',
+      title: `บิลข้อมูลไม่สมบูรณ์ ${badSales.length} รายการ`,
+      desc: 'พบบิลที่ไม่มีเวลา หรือไม่มีรายการสินค้า อาจทำให้รายงานไม่ถูกต้อง',
+    });
+  }
+}
+
+function checkLargeLocalStorage() {
+  try {
+    let total = 0;
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        total += localStorage.getItem(key).length * 2;
+      }
+    }
+    const mb = total / (1024 * 1024);
+    if (mb > 4) {
+      healthIssues.push({
+        severity: 'warning',
+        icon: '💾',
+        title: `localStorage เกือบเต็ม (${mb.toFixed(1)} MB)`,
+        desc: 'เบราว์เซอร์จำกัด localStorage ไว้ ~5 MB ถ้าเต็มจะเก็บข้อมูลใหม่ไม่ได้',
+      });
+    }
+  } catch(e) {}
+}
+
+function checkProductRecommendations() {
+  if (products.length > 0 && products.length < 10) {
+    healthIssues.push({
+      severity: 'suggestion',
+      icon: '💡',
+      title: 'เพิ่มสินค้าอีกหน่อย',
+      desc: `ตอนนี้มีสินค้า ${products.length} รายการ ลองเพิ่มสินค้าให้ครบทุกตัวที่ขายจริงจะใช้ระบบได้เต็มประสิทธิภาพ`,
+    });
+  }
+  const noAlert = products.filter(p => !p.alert || p.alert <= 0);
+  if (noAlert.length > products.length * 0.3 && noAlert.length > 3) {
+    healthIssues.push({
+      severity: 'suggestion',
+      icon: '🔔',
+      title: `สินค้า ${noAlert.length} รายการไม่มีจุดแจ้งเตือนสต็อก`,
+      desc: 'ควรตั้งจุดแจ้งเตือน (Alert) เช่น 5 ชิ้น เพื่อให้ระบบเตือนก่อนสินค้าจะหมด',
+    });
+  }
+}
+
+function renderHealthPanel() {
+  const crits = healthIssues.filter(i => i.severity === 'critical');
+  const warns = healthIssues.filter(i => i.severity === 'warning');
+  const suggests = healthIssues.filter(i => i.severity === 'suggestion');
+  const total = crits.length + warns.length;
+
+  const badge = document.getElementById('health-status-badge');
+  if (crits.length) {
+    badge.className = 'health-status-badge crit';
+    badge.textContent = `พบปัญหา ${total} จุด`;
+  } else if (warns.length) {
+    badge.className = 'health-status-badge warn';
+    badge.textContent = `เตือน ${warns.length} จุด`;
+  } else {
+    badge.className = 'health-status-badge ok';
+    badge.textContent = 'ปกติ';
+  }
+
+  document.getElementById('health-summary').innerHTML = `
+    <div class="health-summary-card">
+      <div class="hs-num red">${crits.length}</div>
+      <div class="hs-label">วิกฤต</div>
+    </div>
+    <div class="health-summary-card">
+      <div class="hs-num yellow">${warns.length}</div>
+      <div class="hs-label">เตือน</div>
+    </div>
+    <div class="health-summary-card">
+      <div class="hs-num green">${suggests.length}</div>
+      <div class="hs-label">แนะนำ</div>
+    </div>
+  `;
+
+  let html = '';
+
+  if (!healthIssues.length) {
+    html = `<div class="health-ok-msg">
+      <div class="ok-icon">✅</div>
+      <div class="ok-text">ระบบปกติทุกอย่าง!</div>
+      <div class="ok-sub">ไม่พบปัญหา ข้อมูลสมบูรณ์ดี</div>
+    </div>`;
+  } else {
+    if (crits.length) {
+      html += `<div class="health-section-title">🔴 วิกฤต — ต้องแก้ไข</div>`;
+      crits.forEach((item, idx) => { html += renderHealthItem(item, 'c' + idx); });
+    }
+    if (warns.length) {
+      html += `<div class="health-section-title">🟡 เตือน — ควรตรวจสอบ</div>`;
+      warns.forEach((item, idx) => { html += renderHealthItem(item, 'w' + idx); });
+    }
+    if (suggests.length) {
+      html += `<div class="health-section-title">💡 แนะนำ — ทำให้ดีขึ้น</div>`;
+      suggests.forEach((item, idx) => { html += renderHealthItem(item, 's' + idx); });
+    }
+  }
+
+  document.getElementById('health-items').innerHTML = html;
+
+  const checkTime = lastHealthCheck.toLocaleString('th-TH', {
+    timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+  document.getElementById('health-last-check').innerHTML =
+    `ตรวจล่าสุด: ${checkTime} &nbsp;·&nbsp; <a href="javascript:runHealthCheck()" style="color:var(--primary);font-weight:700;">ตรวจอีกครั้ง</a>`;
+}
+
+function renderHealthItem(item, key) {
+  const sevLabel = item.severity === 'critical' ? 'วิกฤต' : item.severity === 'warning' ? 'เตือน' : 'แนะนำ';
+  let fixBtn = '';
+  if (item.fix) {
+    fixBtn = `
+      <div style="margin-top:8px;padding:10px 12px;background:var(--surface2);border-radius:8px;">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:6px;">🔧 <b>แก้ไข:</b> ${item.fix.explain}</div>
+        <button class="health-fix-btn" id="fix-${key}" onclick="confirmHealthFix('${key}')">
+          ✅ ${item.fix.label}
+        </button>
+      </div>`;
+  }
+  return `
+    <div class="health-item ${item.severity}">
+      <div class="health-item-header">
+        <span class="health-item-icon">${item.icon}</span>
+        <span class="health-item-title">${item.title}</span>
+        <span class="health-item-severity">${sevLabel}</span>
+      </div>
+      <div class="health-item-desc">${item.desc}</div>
+      ${item.detail ? `<div class="health-item-detail">${item.detail}</div>` : ''}
+      ${fixBtn}
+    </div>`;
+}
+
+function confirmHealthFix(key) {
+  const prefix = key[0];
+  const idx = parseInt(key.slice(1));
+  let item;
+  if (prefix === 'c') item = healthIssues.filter(i => i.severity === 'critical')[idx];
+  else if (prefix === 'w') item = healthIssues.filter(i => i.severity === 'warning')[idx];
+  else item = healthIssues.filter(i => i.severity === 'suggestion')[idx];
+
+  if (!item || !item.fix) return;
+  if (confirm(`ต้องการแก้ไขหรือไม่?\n\n${item.fix.explain}`)) {
+    const btn = document.getElementById('fix-' + key);
+    if (btn) { btn.textContent = 'กำลังแก้ไข...'; btn.className = 'health-fix-btn fixing'; btn.disabled = true; }
+    setTimeout(() => item.fix.action(), 300);
+  }
+}
+
+function updateHealthFab() {
+  const crits = healthIssues.filter(i => i.severity === 'critical').length;
+  const warns = healthIssues.filter(i => i.severity === 'warning').length;
+  const total = crits + warns;
+
+  const dot = document.getElementById('hamburger-dot');
+  const badge = document.getElementById('drawer-health-badge');
+
+  if (total > 0) {
+    dot.style.display = 'block';
+    badge.style.display = 'flex';
+    badge.textContent = total;
+  } else {
+    dot.style.display = 'none';
+    badge.style.display = 'none';
+  }
+}
+
+setTimeout(() => {
+  runHealthCheck();
+  setInterval(runHealthCheck, 5 * 60 * 1000);
+}, 3000);
 
 // ══════════════════════════════════════════
 //  CHATBOT
@@ -3841,6 +5240,19 @@ function markUpdatesAsSeen() {
   updateNotifPending = [];
   updateChangelogBadge(0);
 }
+
+// ══════════════════════════════════════════
+//  ORIENTATION LOCK
+// ══════════════════════════════════════════
+function dismissLandscape() {
+  document.getElementById('landscape-warning').classList.add('dismissed');
+}
+
+try {
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('portrait').catch(() => {});
+  }
+} catch(e) {}
 
 // ══════════════════════════════════════════
 //  INIT
